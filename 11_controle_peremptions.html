@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<!-- saved from url=(0113)file:///C:/Users/andre/OneDrive%20-%20GSIS/Bureau/Projet%20xyz/projet_sergent/GitHub/11_controle_peremptions.html -->
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Contrôle Péremptions — Véhicules Ambulances</title>
+<style>
+:root {
+--rouge:#C41E3A;--rouge-fonce:#8B1525;--noir:#0f1117;--carte:#1a1d27;--bord:#2a2d3a;
+--texte:#e5e7eb;--gris:#6b7280;--vert:#16a34a;--orange:#ea580c;--jaune:#ca8a04;--bleu:#2563eb;
+--police-titre:'Segoe UI',system-ui,-apple-system,sans-serif;
+--police-mono:'Consolas','Menlo','Monaco',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--police-titre);background:var(--noir);color:var(--texte);min-height:100vh;padding:0;overflow-x:hidden}
+.page{max-width:1400px;margin:0 auto;padding:16px}
+.entete{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bord);flex-wrap:wrap;gap:10px}
+.entete h1{font-size:1.2rem;color:white}
+.entete p{color:var(--gris);font-size:.78rem;margin-top:2px}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-rouge{background:var(--rouge);color:white}.btn-rouge:hover{background:var(--rouge-fonce)}
+.btn-gris{background:var(--bord);color:var(--texte)}.btn-gris:hover{background:#3a3d4a}
+.btn-vert{background:var(--vert);color:white}.btn-vert:hover{background:#15803d}
+.btn-bleu{background:var(--bleu);color:white}.btn-bleu:hover{background:#1d4ed8}
+.btn-sm{padding:6px 10px;font-size:.75rem}
+.onglets{display:flex;gap:0;margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid var(--bord)}
+.onglet{flex:1;padding:12px 16px;text-align:center;font-weight:600;font-size:.85rem;cursor:pointer;background:var(--carte);color:var(--gris);transition:all .2s;border:none;font-family:inherit}
+.onglet.actif{background:var(--rouge);color:white}
+.onglet:not(.actif):hover{background:#22252f;color:var(--texte)}
+.panneau{display:none}.panneau.visible{display:block}
+.resume{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.resume-carte{background:var(--carte);border:1px solid var(--bord);border-radius:10px;padding:12px;text-align:center}
+.resume-valeur{font-size:1.5rem;font-weight:700;font-family:var(--police-mono)}
+.resume-label{font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.alerte-banniere{display:none;padding:12px 16px;border-radius:10px;margin-bottom:12px;font-size:.82rem;font-weight:600;border:1px solid}
+.alerte-visible{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.alerte-rouge{background:rgba(196,30,58,.1);border-color:rgba(196,30,58,.3);color:#f87171}
+.alerte-orange{background:rgba(234,88,12,.1);border-color:rgba(234,88,12,.3);color:#fb923c}
+.revue-entete{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.revue-entete h2{font-size:1.1rem;color:white}
+.revue-select{padding:10px 14px;border-radius:8px;border:1px solid var(--bord);background:var(--carte);color:var(--texte);font-family:inherit;font-size:.9rem;width:100%;max-width:300px}
+.revue-select:focus{outline:none;border-color:var(--rouge)}
+.revue-progression{background:var(--carte);border:1px solid var(--bord);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.prog-barre-fond{flex:1;min-width:120px;height:10px;background:var(--bord);border-radius:5px;overflow:hidden}
+.prog-barre-remplissage{height:100%;border-radius:5px;transition:width .5s ease;background:var(--vert)}
+.prog-texte{font-family:var(--police-mono);font-size:.9rem;font-weight:600;white-space:nowrap}
+.prog-label{font-size:.8rem;color:var(--gris);white-space:nowrap}
+.revue-liste{display:flex;flex-direction:column;gap:8px}
+.revue-item{background:var(--carte);border:1px solid var(--bord);border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:all .3s}
+.revue-item.verifie{opacity:.3;order:999}
+.revue-item-info{flex:1;min-width:0}
+.revue-item-nom{font-weight:700;font-size:.92rem;color:white;margin-bottom:4px;word-wrap:break-word}
+.revue-item-details{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--gris)}
+.revue-item-details span{display:inline-flex;align-items:center;gap:4px}
+.btn-check{width:48px;height:48px;border-radius:50%;border:2px solid var(--bord);background:transparent;color:var(--gris);font-size:1.3rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.btn-check:hover{border-color:var(--vert);color:var(--vert)}
+.btn-check.fait{background:var(--vert);border-color:var(--vert);color:white}
+.statut-badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.statut-ok{background:rgba(22,163,74,.15);color:#4ade80}
+.statut-attention{background:rgba(202,138,4,.15);color:#fbbf24}
+.statut-urgent{background:rgba(234,88,12,.15);color:#fb923c}
+.statut-perime{background:rgba(196,30,58,.15);color:#f87171}
+.revue-fin{text-align:center;padding:40px 20px;background:var(--carte);border:1px solid var(--bord);border-radius:12px;margin-top:16px}
+.revue-fin h3{font-size:1.2rem;color:white;margin-bottom:8px}
+.revue-fin p{color:var(--gris);font-size:.85rem;margin-bottom:16px}
+.vehicule-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(37,99,235,.15);color:#60a5fa}
+.admin-verrou{text-align:center;padding:60px 20px;background:var(--carte);border:1px solid var(--bord);border-radius:14px}
+.admin-verrou h2{font-size:1.2rem;color:white;margin-bottom:8px}
+.admin-verrou p{color:var(--gris);font-size:.85rem;margin-bottom:20px}
+.mdp-groupe{display:flex;gap:10px;justify-content:center;max-width:300px;margin:0 auto}
+.mdp-input{flex:1;padding:10px 14px;border:1px solid var(--bord);border-radius:8px;background:var(--noir);color:var(--texte);font-family:inherit;font-size:1rem;text-align:center;letter-spacing:4px}
+.mdp-input:focus{outline:none;border-color:var(--rouge)}
+.mdp-erreur{color:#f87171;font-size:.82rem;margin-top:8px;display:none}
+.barre-outils{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.recherche{flex:1;min-width:150px;padding:8px 12px;border-radius:8px;border:1px solid var(--bord);background:var(--carte);color:var(--texte);font-family:inherit;font-size:.85rem}
+.recherche:focus{outline:none;border-color:var(--rouge)}
+.filtre-select{padding:8px 10px;border-radius:8px;border:1px solid var(--bord);background:var(--carte);color:var(--texte);font-family:inherit;font-size:.8rem;max-width:160px}
+.filtre-select:focus{outline:none;border-color:var(--rouge)}
+.tableau-conteneur{overflow-x:auto;border-radius:10px;border:1px solid var(--bord);margin-bottom:16px}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th,td{padding:8px 12px;font-size:.8rem;text-align:left;border-bottom:1px solid var(--bord)}
+th{background:#22252f;color:var(--gris);font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;font-weight:700;position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
+th:hover{color:var(--texte)}
+.jours-cell{font-family:var(--police-mono);font-weight:600;font-size:.8rem}
+.jours-vert{color:#4ade80}.jours-jaune{color:#fbbf24}.jours-orange{color:#fb923c}.jours-rouge{color:#f87171}
+.modale-fond{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:100;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto}
+.modale-fond.visible{display:flex}
+.modale{background:var(--carte);border:1px solid var(--bord);border-radius:14px;padding:24px;width:100%;max-width:550px;margin:auto}
+.modale h2{font-size:1rem;color:white;margin-bottom:16px}
+.champ-groupe{margin-bottom:12px}
+.champ-groupe label{display:block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gris);margin-bottom:4px}
+.champ-groupe input,.champ-groupe select{width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:6px;background:var(--noir);color:var(--texte);font-family:inherit;font-size:.9rem}
+.champ-groupe input:focus,.champ-groupe select:focus{outline:none;border-color:var(--rouge)}
+.champ-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions-modale{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.export-zone{display:flex;gap:6px;flex-wrap:wrap}
+.info-pagination{font-size:.78rem;color:var(--gris);margin-top:8px}
+.modale-verif{max-width:460px}
+.modale-verif .info-article{background:var(--noir);border:1px solid var(--bord);border-radius:8px;padding:14px;margin-bottom:16px}
+.modale-verif .info-article h3{font-size:.95rem;color:white;margin-bottom:8px}
+.modale-verif .info-article .detail-ligne{display:flex;justify-content:space-between;font-size:.82rem;padding:4px 0;border-bottom:1px solid rgba(42,45,58,.5)}
+.modale-verif .info-article .detail-ligne:last-child{border:none}
+.modale-verif .info-article .detail-cle{color:var(--gris)}
+.modale-verif .info-article .detail-val{color:var(--texte);font-weight:600}
+.date-actuelle-badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;margin-top:2px}
+.historique-vide{text-align:center;padding:30px;color:var(--gris);font-size:.85rem}
+.historique-tableau{width:100%;border-collapse:collapse;min-width:0}
+.historique-tableau th,.historique-tableau td{padding:10px 12px;font-size:.8rem;text-align:left;border-bottom:1px solid var(--bord)}
+.historique-tableau th{background:#22252f;color:var(--gris);font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.historique-tableau tr:hover{background:rgba(255,255,255,.03)}
+@media(max-width:768px){
+.page{padding:10px}
+.entete h1{font-size:1rem}
+.resume{grid-template-columns:repeat(3,1fr)}
+.resume-carte{padding:10px 8px}
+.resume-valeur{font-size:1.2rem}
+.champ-row{grid-template-columns:1fr}
+.onglet{padding:10px 8px;font-size:.78rem}
+.barre-outils{flex-direction:column}
+.recherche{min-width:100%}
+.filtre-select{max-width:100%;width:100%}
+.export-zone{width:100%;justify-content:stretch}
+.export-zone .btn{flex:1;justify-content:center}
+table{min-width:700px}
+th,td{padding:6px 8px;font-size:.75rem}
+}
+@media(max-width:480px){
+.resume{grid-template-columns:repeat(2,1fr)}
+.revue-progression{flex-direction:column;align-items:stretch;gap:8px}
+.prog-texte{text-align:center}
+}
+@media print{
+body{background:white;color:black;padding:10px}
+.btn,.barre-outils,.modale-fond,.export-zone,.onglets,.admin-verrou,.revue-item-actions{display:none!important}
+.panneau{display:block!important}
+.resume-carte{border:1px solid #ddd;background:white}
+.resume-valeur,.resume-label{color:black}
+table{min-width:auto}th{background:#f5f5f5;color:black}td{color:black;border-color:#ddd}
+.entete{border-color:#ddd}.entete h1,.entete p{color:black}
+.tableau-conteneur{border-color:#ddd}
+.revue-item{background:white;border-color:#ddd}
+.revue-item-nom{color:black}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="entete">
+<div>
+<h1>🔒 Contrôle des Péremptions</h1>
+<p>Compagnie Ambulances — SIS Genève</p>
+</div>
+<span style="font-size:.78rem;color:var(--gris)" id="dateMaj">22.02.2026</span>
+</div>
+<div class="onglets">
+<button class="onglet actif" id="ongletRevue" onclick="changerOnglet(&#39;revue&#39;)">📋 Revue véhicule</button>
+<button class="onglet" id="ongletAdmin" onclick="changerOnglet(&#39;admin&#39;)">🔐 Gestion</button>
+</div>
+<div class="panneau visible" id="panneauRevue">
+<div class="alerte-banniere" id="alertePerimeRevue"></div>
+<div class="alerte-banniere" id="alerteUrgentRevue"></div>
+<div class="revue-entete">
+<div>
+<h2>Revue du véhicule</h2>
+<p style="color:var(--gris);font-size:.8rem;margin-top:2px">Vérifiez chaque article et confirmez sa date de péremption</p>
+</div>
+<select class="revue-select" id="selectVehiculeRevue" onchange="lancerRevue()"><option value="">— Sélectionner un véhicule —</option><option value="César 41">César 41</option><option value="César 42">César 42</option><option value="César 43">César 43</option><option value="César 44">César 44</option><option value="César 45">César 45</option></select>
+</div>
+<div id="zoneRevue"><p style="text-align:center;color:var(--gris);padding:40px">Sélectionnez un véhicule pour démarrer la revue.</p></div>
+</div>
+<div class="panneau" id="panneauAdmin">
+<div class="admin-verrou" id="verrou" style="display: none;">
+<h2>🔐 Accès restreint</h2>
+<p>Section réservée à la hiérarchie.</p>
+<div class="mdp-groupe">
+<input type="password" class="mdp-input" id="champMdp" placeholder="••••" maxlength="10" onkeydown="if(event.key===&#39;Enter&#39;)verifierMdp()">
+<button class="btn btn-rouge" onclick="verifierMdp()">Valider</button>
+</div>
+<div class="mdp-erreur" id="mdpErreur">Mot de passe incorrect</div>
+</div>
+<div id="contenuAdmin" style="display: block;">
+<div class="resume" id="zoneResume">
+<div class="resume-carte"><div class="resume-valeur" style="color:white">50</div><div class="resume-label">Références</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:white">240</div><div class="resume-label">Unités</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:#f87171">10</div><div class="resume-label">Périmés</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:#fb923c">1</div><div class="resume-label">&lt; 30 j</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:#fbbf24">6</div><div class="resume-label">Surveillance</div></div></div>
+<div class="barre-outils">
+<input class="recherche" type="text" placeholder="Rechercher…" id="champRecherche" oninput="filtrerAdmin()">
+<select class="filtre-select" id="filtreVehicule" onchange="filtrerAdmin()"><option value="tous">Tous véhicules</option><option>César 41</option><option>César 42</option><option>César 43</option><option>César 44</option><option>César 45</option></select>
+<select class="filtre-select" id="filtreCategorie" onchange="filtrerAdmin()"><option value="tous">Toutes catégories</option><option>Monitoring</option><option>Médicaments</option><option>Pansements</option><option>Perfusion</option><option>Voies aériennes</option><option>Électrodes</option></select>
+<select class="filtre-select" id="filtreStatut" onchange="filtrerAdmin()">
+<option value="tous">Tous statuts</option><option value="perime">Périmés</option><option value="urgent">&lt; 30 jours</option><option value="attention">&lt; 90 jours</option><option value="ok">OK</option>
+</select>
+<div class="export-zone">
+<button class="btn btn-bleu btn-sm" onclick="ouvrirImport()">📥 Import</button>
+<button class="btn btn-vert btn-sm" onclick="ouvrirAjout()">+ Ajouter</button>
+<button class="btn btn-gris btn-sm" onclick="exporterCSV()">📄 CSV</button>
+<button class="btn btn-gris btn-sm" onclick="window.print()">🖨️</button>
+</div>
+</div>
+<div class="tableau-conteneur">
+<table><thead><tr>
+<th onclick="trier(&#39;nom&#39;)">Consommable</th><th onclick="trier(&#39;categorie&#39;)">Catégorie</th><th onclick="trier(&#39;vehicule&#39;)">Véhicule</th><th onclick="trier(&#39;emplacement&#39;)">Emplacement</th><th onclick="trier(&#39;peremption&#39;)">Péremption</th><th onclick="trier(&#39;jours&#39;)">J restants</th><th onclick="trier(&#39;statut&#39;)">Statut</th><th>Qté</th><th>Actions</th>
+</tr></thead><tbody id="corpsTableau"><tr><td style="font-weight:600">Fentanyl 50mcg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Ampoularium</td><td>31.12.2026</td><td class="jours-cell jours-vert">+312 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_3q25xh2pa&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_3q25xh2pa&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Fentanyl 50mcg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Ampoularium</td><td>27.01.2026</td><td class="jours-cell jours-rouge">-26 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_ben1q7opg&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_ben1q7opg&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Fentanyl 50mcg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Ampoularium</td><td>25.07.2027</td><td class="jours-cell jours-vert">+518 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_cgwkyr3fb&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_cgwkyr3fb&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Fentanyl 50mcg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Ampoularium</td><td>18.07.2027</td><td class="jours-cell jours-vert">+511 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_r6jz5p3zi&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_r6jz5p3zi&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Fentanyl 50mcg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Ampoularium</td><td>26.07.2027</td><td class="jours-cell jours-vert">+519 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_f0sllpyc4&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_f0sllpyc4&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes défibrillation adulte ZOLL</td><td>Électrodes</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Sac défib</td><td>01.02.2026</td><td class="jours-cell jours-rouge">-21 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_epsfbazzi&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_epsfbazzi&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes défibrillation adulte ZOLL</td><td>Électrodes</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Sac défib</td><td>16.11.2026</td><td class="jours-cell jours-vert">+267 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_8nlyeenz1&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_8nlyeenz1&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes défibrillation adulte ZOLL</td><td>Électrodes</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Sac défib</td><td>15.06.2026</td><td class="jours-cell jours-vert">+113 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_zftvgwwko&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_zftvgwwko&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes défibrillation adulte ZOLL</td><td>Électrodes</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Sac défib</td><td>12.02.2026</td><td class="jours-cell jours-rouge">-10 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_2pzo28qvy&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_2pzo28qvy&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes défibrillation adulte ZOLL</td><td>Électrodes</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Sac défib</td><td>05.07.2027</td><td class="jours-cell jours-vert">+498 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_usyrprljx&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_usyrprljx&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">I-Gel 4.0</td><td>Voies aériennes</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Sac VA</td><td>13.11.2026</td><td class="jours-cell jours-vert">+264 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_yg9p91ujc&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_yg9p91ujc&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">I-Gel 4.0</td><td>Voies aériennes</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Sac VA</td><td>02.08.2026</td><td class="jours-cell jours-vert">+161 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_sqi37r1jv&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_sqi37r1jv&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">I-Gel 4.0</td><td>Voies aériennes</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Sac VA</td><td>30.11.2026</td><td class="jours-cell jours-vert">+281 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_0wma9u0q9&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_0wma9u0q9&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">I-Gel 4.0</td><td>Voies aériennes</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Sac VA</td><td>06.01.2026</td><td class="jours-cell jours-rouge">-47 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_hxwwhs7ze&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_hxwwhs7ze&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">I-Gel 4.0</td><td>Voies aériennes</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Sac VA</td><td>17.04.2026</td><td class="jours-cell jours-jaune">+54 j</td><td><span class="statut-badge statut-attention">Attention</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_dncen8791&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_dncen8791&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Adrénaline 1mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>24.01.2026</td><td class="jours-cell jours-rouge">-29 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_777bz6ofi&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_777bz6ofi&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Midazolam 5mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>28.02.2027</td><td class="jours-cell jours-vert">+371 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_i4ysmp7tp&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_i4ysmp7tp&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Adrénaline 1mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>15.06.2026</td><td class="jours-cell jours-vert">+113 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_dvlxsuask&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_dvlxsuask&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Midazolam 5mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>04.04.2026</td><td class="jours-cell jours-jaune">+41 j</td><td><span class="statut-badge statut-attention">Attention</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_s40qlgo9f&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_s40qlgo9f&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Adrénaline 1mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>04.11.2026</td><td class="jours-cell jours-vert">+255 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_uvdcs9vm4&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_uvdcs9vm4&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Midazolam 5mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>27.11.2026</td><td class="jours-cell jours-vert">+278 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_enzosupas&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_enzosupas&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Adrénaline 1mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>26.02.2027</td><td class="jours-cell jours-vert">+369 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_i8wp52my3&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_i8wp52my3&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Midazolam 5mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>02.08.2026</td><td class="jours-cell jours-vert">+161 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_xabb8xd9n&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_xabb8xd9n&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Adrénaline 1mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>18.02.2027</td><td class="jours-cell jours-vert">+361 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_pxyr2rmnf&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_pxyr2rmnf&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Midazolam 5mg/ml</td><td>Médicaments</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Sacoche médicaments</td><td>02.03.2026</td><td class="jours-cell jours-orange">+8 j</td><td><span class="statut-badge statut-urgent">Urgent</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_qj2qxm041&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_qj2qxm041&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes ECG (sachet 50)</td><td>Monitoring</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir monitoring</td><td>26.04.2026</td><td class="jours-cell jours-jaune">+63 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_mex8cqt1q&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_mex8cqt1q&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes ECG (sachet 50)</td><td>Monitoring</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir monitoring</td><td>05.08.2026</td><td class="jours-cell jours-vert">+164 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_do7qseecz&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_do7qseecz&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes ECG (sachet 50)</td><td>Monitoring</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir monitoring</td><td>25.10.2026</td><td class="jours-cell jours-vert">+245 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_g0yt5k2as&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_g0yt5k2as&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes ECG (sachet 50)</td><td>Monitoring</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir monitoring</td><td>25.07.2027</td><td class="jours-cell jours-vert">+518 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_8qs3cto1a&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_8qs3cto1a&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Électrodes ECG (sachet 50)</td><td>Monitoring</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir monitoring</td><td>19.07.2026</td><td class="jours-cell jours-vert">+147 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>2</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_kce6fq5ub&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_kce6fq5ub&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Compresses stériles 5x5</td><td>Pansements</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir pansements</td><td>07.10.2026</td><td class="jours-cell jours-vert">+227 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>20</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_tl3bhstz9&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_tl3bhstz9&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Compresses stériles 5x5</td><td>Pansements</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir pansements</td><td>01.06.2026</td><td class="jours-cell jours-vert">+99 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>20</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_13747umjj&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_13747umjj&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Compresses stériles 5x5</td><td>Pansements</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir pansements</td><td>08.07.2026</td><td class="jours-cell jours-vert">+136 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>20</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_ys4d5e4jc&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_ys4d5e4jc&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Compresses stériles 5x5</td><td>Pansements</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir pansements</td><td>21.08.2026</td><td class="jours-cell jours-vert">+180 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>20</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_pwwrcz1at&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_pwwrcz1at&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Compresses stériles 5x5</td><td>Pansements</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir pansements</td><td>06.01.2026</td><td class="jours-cell jours-rouge">-47 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>20</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_2yskl6qgp&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_2yskl6qgp&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">NaCl 0.9% 500ml</td><td>Perfusion</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>10.05.2026</td><td class="jours-cell jours-jaune">+77 j</td><td><span class="statut-badge statut-attention">Attention</span></td><td>4</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_mqfagfl25&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_mqfagfl25&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Cathéter IV 18G</td><td>Perfusion</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>01.01.2027</td><td class="jours-cell jours-vert">+313 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_2d3jurcos&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_2d3jurcos&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Tubulure</td><td>Perfusion</td><td><span class="vehicule-badge">César 41</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>12.02.2026</td><td class="jours-cell jours-rouge">-10 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_0zd6e1hlp&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_0zd6e1hlp&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">NaCl 0.9% 500ml</td><td>Perfusion</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>19.01.2026</td><td class="jours-cell jours-rouge">-34 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>4</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_9qbumiads&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_9qbumiads&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Cathéter IV 18G</td><td>Perfusion</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>05.04.2026</td><td class="jours-cell jours-jaune">+42 j</td><td><span class="statut-badge statut-attention">Attention</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_g93m7mrng&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_g93m7mrng&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Tubulure</td><td>Perfusion</td><td><span class="vehicule-badge">César 42</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>12.05.2026</td><td class="jours-cell jours-jaune">+79 j</td><td><span class="statut-badge statut-attention">Attention</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_y4ev4gj2n&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_y4ev4gj2n&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">NaCl 0.9% 500ml</td><td>Perfusion</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>14.05.2026</td><td class="jours-cell jours-jaune">+81 j</td><td><span class="statut-badge statut-attention">Attention</span></td><td>4</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_p6s7bs0x7&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_p6s7bs0x7&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Cathéter IV 18G</td><td>Perfusion</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>23.11.2026</td><td class="jours-cell jours-vert">+274 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_00ei8hazd&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_00ei8hazd&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Tubulure</td><td>Perfusion</td><td><span class="vehicule-badge">César 43</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>19.01.2027</td><td class="jours-cell jours-vert">+331 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_fvfkouht4&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_fvfkouht4&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">NaCl 0.9% 500ml</td><td>Perfusion</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>07.07.2026</td><td class="jours-cell jours-vert">+135 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>4</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_rrv9nqjto&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_rrv9nqjto&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Cathéter IV 18G</td><td>Perfusion</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>25.10.2026</td><td class="jours-cell jours-vert">+245 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_fdlppyabl&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_fdlppyabl&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Tubulure</td><td>Perfusion</td><td><span class="vehicule-badge">César 44</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>20.02.2026</td><td class="jours-cell jours-rouge">-2 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_0advapz2p&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_0advapz2p&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">NaCl 0.9% 500ml</td><td>Perfusion</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>20.02.2026</td><td class="jours-cell jours-rouge">-2 j</td><td><span class="statut-badge statut-perime">Périmé</span></td><td>4</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_xpzz4t26f&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_xpzz4t26f&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Cathéter IV 18G</td><td>Perfusion</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>06.06.2026</td><td class="jours-cell jours-vert">+104 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>5</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_cgp60mc3g&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_cgp60mc3g&#39;)">🗑️</button></td></tr><tr><td style="font-weight:600">Tubulure</td><td>Perfusion</td><td><span class="vehicule-badge">César 45</span></td><td style="font-size:.78rem;color:var(--gris)">Tiroir perfusion</td><td>08.01.2027</td><td class="jours-cell jours-vert">+320 j</td><td><span class="statut-badge statut-ok">OK</span></td><td>3</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer(&#39;id_bkceib4a8&#39;)">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer(&#39;id_bkceib4a8&#39;)">🗑️</button></td></tr></tbody></table>
+</div>
+<div class="info-pagination" id="infoPagination">50 / 50 références</div>
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bord)">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+<h2 style="font-size:1rem;color:white">📁 Historique des contrôles</h2>
+<button class="btn btn-gris btn-sm" onclick="viderHistorique()">🗑️ Vider l'historique</button>
+</div>
+<div id="zoneHistorique"><div class="historique-vide">Aucun contrôle archivé pour le moment.</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="modale-fond" id="modaleAjout">
+<div class="modale">
+<h2 id="modaleTitre">Modifier</h2>
+<div class="champ-row">
+<div class="champ-groupe"><label>Nom</label><input type="text" id="champNom" placeholder="Ex. : Électrodes défib adulte"></div>
+<div class="champ-groupe"><label>Catégorie</label><select id="champCategorie"><option>Électrodes</option><option>Médicaments</option><option>Perfusion</option><option>Voies aériennes</option><option>Pansements</option><option>Monitoring</option><option>Immobilisation</option><option>Divers</option></select></div>
+</div>
+<div class="champ-row">
+<div class="champ-groupe"><label>Péremption</label><input type="date" id="champPeremption"></div>
+<div class="champ-groupe"><label>Véhicule</label><select id="champVehicule"><option value="César 41">César 41</option><option value="César 42">César 42</option><option value="César 43">César 43</option><option value="César 44">César 44</option><option value="César 45">César 45</option><option value="Réserve caserne">Réserve caserne</option></select></div>
+</div>
+<div class="champ-row">
+<div class="champ-groupe"><label>Emplacement</label><input type="text" id="champEmplacement" placeholder="Sac principal"></div>
+</div>
+<div class="champ-row">
+<div class="champ-groupe"><label>Quantité</label><input type="number" id="champQuantite" value="1" min="1"></div>
+<div class="champ-groupe"><label>Seuil alerte (jours)</label><input type="number" id="champSeuil" value="90" min="1"></div>
+</div>
+<div class="actions-modale">
+<button class="btn btn-gris" onclick="fermerModale()">Annuler</button>
+<button class="btn btn-vert" onclick="sauvegarder()" id="btnSauvegarder">Enregistrer</button>
+</div>
+</div>
+</div>
+<div class="modale-fond" id="modaleImport">
+<div class="modale">
+<h2>Importer CSV</h2>
+<p style="font-size:.8rem;color:var(--gris);margin-bottom:14px;line-height:1.5">Format : <code style="background:var(--noir);padding:2px 6px;border-radius:4px;font-family:var(--police-mono);font-size:.75rem">nom;categorie;vehicule;emplacement;peremption;quantite;seuil</code></p>
+<div class="champ-groupe"><label>Fichier</label><input type="file" id="fichierCSV" accept=".csv" style="color:var(--texte)"></div>
+<div class="actions-modale">
+<button class="btn btn-gris" onclick="fermerImport()">Annuler</button>
+<button class="btn btn-bleu" onclick="importerCSV()">Importer</button>
+</div>
+</div>
+</div>
+<div class="modale-fond" id="modaleVerification">
+<div class="modale modale-verif">
+<h2>✅ Vérification de l'article</h2>
+<div class="info-article" id="infoArticleVerif"></div>
+<div class="champ-groupe">
+<label>Date de péremption la plus proche constatée</label>
+<input type="text" id="champDateVerif" inputmode="numeric" placeholder="JJ.MM.AAAA" maxlength="10" autocomplete="off" style="font-family:var(--police-mono);font-size:1.1rem;letter-spacing:1px;text-align:center">
+</div>
+<div class="actions-modale">
+<button class="btn btn-gris" onclick="fermerVerification()">Annuler</button>
+<button class="btn btn-vert" onclick="validerVerification()">Valider la vérification</button>
+</div>
+</div>
+</div>
+<script>
+const MDP='1234';
+const VEHICULES=['César 41','César 42','César 43','César 44','César 45','Réserve caserne'];
+const AUJ=new Date();AUJ.setHours(0,0,0,0);
+document.getElementById('dateMaj').textContent=AUJ.toLocaleDateString('fr-CH');
+let inventaire=[];
+let triActuel={colonne:'jours',ordre:'asc'};
+let editionId=null;
+let revueVerifies=new Set();
+let adminOk=false;
+let verifEnCours=null;
+let revueDonnees=[];
+let revueVehiculeActif='';
+let revueResultats={};
+let revueArchivee=false;
+let historiqueSession=[];
+function genId(){return'id_'+Math.random().toString(36).substr(2,9)}
+const ARTICLES_STANDARD=[
+{nom:"Électrodes défibrillation adulte ZOLL",categorie:"Électrodes",emplacement:"Sac défib",quantite:2,seuil:90},
+{nom:"Électrodes ECG (sachet 50)",categorie:"Monitoring",emplacement:"Tiroir monitoring",quantite:2,seuil:60},
+{nom:"Adrénaline 1mg/ml",categorie:"Médicaments",emplacement:"Sacoche médicaments",quantite:5,seuil:90},
+{nom:"Midazolam 5mg/ml",categorie:"Médicaments",emplacement:"Sacoche médicaments",quantite:2,seuil:90},
+{nom:"Fentanyl 50mcg/ml",categorie:"Médicaments",emplacement:"Coffre sécurisé",quantite:3,seuil:90},
+{nom:"NaCl 0.9% 500ml",categorie:"Perfusion",emplacement:"Tiroir perfusion",quantite:4,seuil:90},
+{nom:"Cathéter IV 18G",categorie:"Perfusion",emplacement:"Tiroir perfusion",quantite:5,seuil:90},
+{nom:"Tubulure",categorie:"Perfusion",emplacement:"Tiroir perfusion",quantite:3,seuil:90},
+{nom:"I-Gel 4.0",categorie:"Voies aériennes",emplacement:"Sac VA",quantite:2,seuil:90},
+{nom:"Compresses stériles 5x5",categorie:"Pansements",emplacement:"Tiroir pansements",quantite:20,seuil:60}
+];
+function genererDateAleatoire(moisMin,moisMax){
+const m=new Date();
+const decalage=moisMin+Math.floor(Math.random()*(moisMax-moisMin));
+const d=new Date(m.getFullYear(),m.getMonth()+decalage,1+Math.floor(Math.random()*28));
+return d.toISOString().split('T')[0];
+}
+function defaut(){
+const liste=[];
+['César 41','César 42','César 43','César 44','César 45'].forEach(vehicule=>{
+ARTICLES_STANDARD.forEach(art=>{
+liste.push({id:genId(),nom:art.nom,categorie:art.categorie,vehicule:vehicule,emplacement:art.emplacement,peremption:genererDateAleatoire(-1,18),quantite:art.quantite,seuil:art.seuil});
+});
+});
+return liste;
+}
+function chargerDonnees(){return defaut()}
+function sauvegarderDonnees(){}
+function calculerJours(d){const dt=new Date(d);dt.setHours(0,0,0,0);return Math.ceil((dt-AUJ)/864e5)}
+function statutJours(j,seuil){if(j<=0)return'perime';if(j<=30)return'urgent';if(j<=seuil)return'attention';return'ok'}
+function labelStatut(s){return{perime:'Périmé',urgent:'Urgent',attention:'Attention',ok:'OK'}[s]||s}
+function classeJours(j){if(j<=0)return'jours-rouge';if(j<=30)return'jours-orange';if(j<=90)return'jours-jaune';return'jours-vert'}
+function dateIsoVersJma(iso){if(!iso)return'';const p=iso.split('-');if(p.length!==3)return'';return p[2]+'.'+p[1]+'.'+p[0]}
+function dateJmaVersIso(jma){if(!jma)return null;const p=jma.split('.');if(p.length!==3)return null;const j=parseInt(p[0]),m=parseInt(p[1]),a=parseInt(p[2]);if(isNaN(j)||isNaN(m)||isNaN(a)||j<1||j>31||m<1||m>12||a<2020||a>2099)return null;return a+'-'+String(m).padStart(2,'0')+'-'+String(j).padStart(2,'0')}
+function changerOnglet(nom){
+document.querySelectorAll('.onglet').forEach(o=>o.classList.remove('actif'));
+document.querySelectorAll('.panneau').forEach(p=>p.classList.remove('visible'));
+document.getElementById('onglet'+nom.charAt(0).toUpperCase()+nom.slice(1)).classList.add('actif');
+document.getElementById('panneau'+nom.charAt(0).toUpperCase()+nom.slice(1)).classList.add('visible');
+if(nom==='revue')lancerRevue();
+if(nom==='admin'&&adminOk){filtrerAdmin();afficherHistorique()};
+}
+function remplirSelects(){
+const vUsed=[...new Set(inventaire.map(i=>i.vehicule))].sort();
+document.getElementById('selectVehiculeRevue').innerHTML='<option value="">— Sélectionner un véhicule —</option>'+vUsed.map(v=>`<option value="${v}">${v}</option>`).join('');
+document.getElementById('champVehicule').innerHTML=VEHICULES.map(v=>`<option value="${v}">${v}</option>`).join('');
+}
+function lancerRevue(){
+revueVerifies=new Set();
+revueResultats={};
+revueArchivee=false;
+const v=document.getElementById('selectVehiculeRevue').value;
+revueVehiculeActif=v;
+const zone=document.getElementById('zoneRevue');
+document.getElementById('alertePerimeRevue').className='alerte-banniere';
+document.getElementById('alerteUrgentRevue').className='alerte-banniere';
+if(!v){zone.innerHTML='<p style="text-align:center;color:var(--gris);padding:40px">Sélectionnez un véhicule pour démarrer la revue.</p>';return}
+construireRevue(v);
+}
+function construireRevue(vehicule){
+const zone=document.getElementById('zoneRevue');
+const items=inventaire.filter(i=>i.vehicule===vehicule);
+if(!items.length){zone.innerHTML=`<p style="text-align:center;color:var(--gris);padding:40px">Aucun consommable enregistré pour ${vehicule}.</p>`;return}
+const groupes={};
+items.forEach(item=>{
+const cle=item.nom+'|||'+item.emplacement;
+if(!groupes[cle])groupes[cle]={nom:item.nom,emplacement:item.emplacement,categorie:item.categorie,ids:[],qte:0,peremptionProche:null,joursMin:Infinity,statut:'ok',seuil:item.seuil};
+const g=groupes[cle];
+g.ids.push(item.id);
+g.qte+=item.quantite;
+const j=calculerJours(item.peremption);
+if(j<g.joursMin){g.joursMin=j;g.peremptionProche=item.peremption}
+const s=statutJours(j,item.seuil);
+const p={perime:0,urgent:1,attention:2,ok:3};
+if(p[s]<p[g.statut])g.statut=s;
+});
+const liste=Object.values(groupes).sort((a,b)=>a.joursMin-b.joursMin);
+revueDonnees=liste;
+const total=liste.length;
+const nbP=liste.filter(g=>g.statut==='perime').length;
+const nbU=liste.filter(g=>g.statut==='urgent').length;
+const aP=document.getElementById('alertePerimeRevue');
+const aU=document.getElementById('alerteUrgentRevue');
+if(nbP>0){aP.className='alerte-banniere alerte-visible alerte-rouge';aP.innerHTML=`⚠️ <strong>${nbP} article(s) périmé(s)</strong> sur ${vehicule}`}
+if(nbU>0){aU.className='alerte-banniere alerte-visible alerte-orange';aU.innerHTML=`⏰ <strong>${nbU} article(s)</strong> expirent dans moins de 30 jours`}
+let html=`<div class="revue-progression">
+<span class="prog-label">Progression :</span>
+<div class="prog-barre-fond"><div class="prog-barre-remplissage" id="progBarre" style="width:0%"></div></div>
+<span class="prog-texte" id="progTexte">0 / ${total}</span>
+<button class="btn btn-gris btn-sm" onclick="reinitRevue()">↺ Réinitialiser</button>
+</div>
+<div class="revue-liste" id="revueListe">`;
+liste.forEach((g,i)=>{
+const dateAff=new Date(g.peremptionProche).toLocaleDateString('fr-CH');
+const jTxt=g.joursMin<=0?g.joursMin+' j':'+'+g.joursMin+' j';
+html+=`<div class="revue-item" id="ri_${i}">
+<div class="revue-item-info">
+<div class="revue-item-nom">${g.nom}</div>
+<div class="revue-item-details">
+<span>📦 <strong>${g.qte}</strong> unité(s)</span>
+<span>📍 ${g.emplacement}</span>
+<span id="spanDate_${i}">📅 Péremption enregistrée : <strong class="${classeJours(g.joursMin)}">${dateAff}</strong> (${jTxt})</span>
+<span class="statut-badge statut-${g.statut}" id="spanStatut_${i}">${labelStatut(g.statut)}</span>
+</div>
+</div>
+<button class="btn-check" id="bc_${i}" onclick="ouvrirVerification(${i})" title="Vérifier cet article">✓</button>
+</div>`;
+});
+html+=`</div><div class="revue-fin" id="revueFin" style="display:none">
+<h3 style="font-size:1.4rem;margin-bottom:10px">✅ Revue complète</h3>
+<p>Tous les ${total} articles de <strong>${vehicule}</strong> ont été vérifiés.</p>
+<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+<button class="btn btn-rouge" onclick="genererPDF()">📄 Générer le PDF récapitulatif</button>
+<button class="btn btn-vert" onclick="reinitRevue()">Nouvelle revue</button>
+</div></div>`;
+zone.innerHTML=html;
+}
+function ouvrirVerification(index){
+const g=revueDonnees[index];
+if(!g)return;
+if(revueVerifies.has(index)){
+revueVerifies.delete(index);
+document.getElementById('ri_'+index).classList.remove('verifie');
+document.getElementById('bc_'+index).classList.remove('fait');
+delete revueResultats[index];
+majProgression();
+return;
+}
+verifEnCours={index:index,groupe:g};
+const dateAff=new Date(g.peremptionProche).toLocaleDateString('fr-CH');
+const j=g.joursMin;
+const classeDate=classeJours(j);
+const couleurs={'jours-vert':['rgba(22,163,74,.15)','#4ade80'],'jours-jaune':['rgba(202,138,4,.15)','#fbbf24'],'jours-orange':['rgba(234,88,12,.15)','#fb923c'],'jours-rouge':['rgba(196,30,58,.15)','#f87171']};
+const c=couleurs[classeDate]||['transparent','var(--texte)'];
+document.getElementById('infoArticleVerif').innerHTML=`
+<h3>${g.nom}</h3>
+<div class="detail-ligne"><span class="detail-cle">Catégorie</span><span class="detail-val">${g.categorie}</span></div>
+<div class="detail-ligne"><span class="detail-cle">Emplacement</span><span class="detail-val">${g.emplacement}</span></div>
+<div class="detail-ligne"><span class="detail-cle">Quantité attendue</span><span class="detail-val">${g.qte} unité(s)</span></div>
+<div class="detail-ligne"><span class="detail-cle">Péremption actuelle</span><span class="detail-val"><span class="date-actuelle-badge" style="background:${c[0]};color:${c[1]}">${dateAff} (${j<=0?j:'+'+j} j)</span></span></div>`;
+document.getElementById('champDateVerif').value=dateIsoVersJma(g.peremptionProche);
+document.getElementById('modaleVerification').classList.add('visible');
+setTimeout(()=>{const ch=document.getElementById('champDateVerif');ch.focus();ch.select()},100);
+}
+function fermerVerification(){document.getElementById('modaleVerification').classList.remove('visible');verifEnCours=null}
+function validerVerification(){
+if(!verifEnCours)return;
+const saisie=document.getElementById('champDateVerif').value.trim();
+const nouvDate=dateJmaVersIso(saisie);
+if(!nouvDate){alert('Date invalide. Format attendu : JJ.MM.AAAA');return}
+const idx=verifEnCours.index;
+const g=verifEnCours.groupe;
+g.ids.forEach(id=>{const item=inventaire.find(i=>i.id===id);if(item)item.peremption=nouvDate});
+sauvegarderDonnees();
+const jNouveau=calculerJours(nouvDate);
+const nouvStatut=statutJours(jNouveau,g.seuil);
+revueResultats[idx]={nom:g.nom,categorie:g.categorie,emplacement:g.emplacement,quantite:g.qte,dateVerifiee:nouvDate,jours:jNouveau,statut:nouvStatut};
+revueVerifies.add(idx);
+document.getElementById('ri_'+idx).classList.add('verifie');
+document.getElementById('bc_'+idx).classList.add('fait');
+const dateAff=new Date(nouvDate).toLocaleDateString('fr-CH');
+const jTxt=jNouveau<=0?jNouveau+' j':'+'+jNouveau+' j';
+document.getElementById('spanDate_'+idx).innerHTML=`📅 Péremption vérifiée : <strong class="${classeJours(jNouveau)}">${dateAff}</strong> (${jTxt})`;
+const spanS=document.getElementById('spanStatut_'+idx);
+spanS.className=`statut-badge statut-${nouvStatut}`;
+spanS.textContent=labelStatut(nouvStatut);
+revueDonnees[idx].peremptionProche=nouvDate;
+revueDonnees[idx].joursMin=jNouveau;
+revueDonnees[idx].statut=nouvStatut;
+fermerVerification();
+majProgression();
+}
+function majProgression(){
+const total=revueDonnees.length;
+const fait=revueVerifies.size;
+const pct=Math.round(fait/total*100);
+document.getElementById('progBarre').style.width=pct+'%';
+document.getElementById('progTexte').textContent=fait+' / '+total;
+if(fait>=total){
+document.getElementById('revueFin').style.display='block';
+document.getElementById('revueFin').scrollIntoView({behavior:'smooth'});
+if(!revueArchivee){archiverRevue();revueArchivee=true}
+}else{
+document.getElementById('revueFin').style.display='none';
+}
+}
+function reinitRevue(){revueVerifies=new Set();revueResultats={};revueArchivee=false;lancerRevue()}
+function construireHtmlRapport(vehicule,dateRevue,resultats){
+const indices=Object.keys(resultats).map(Number).sort((a,b)=>a-b);
+let nbPerime=0,nbUrgent=0,nbAttention=0,nbOk=0;
+let lignesTableau='';
+indices.forEach(idx=>{
+const r=resultats[idx];
+const dateAff=new Date(r.dateVerifiee).toLocaleDateString('fr-CH');
+const jTxt=r.jours<=0?r.jours+' j':'+'+r.jours+' j';
+const lab=labelStatut(r.statut);
+if(r.statut==='perime')nbPerime++;
+else if(r.statut==='urgent')nbUrgent++;
+else if(r.statut==='attention')nbAttention++;
+else nbOk++;
+const couleurStatut={'perime':'#dc2626','urgent':'#ea580c','attention':'#ca8a04','ok':'#16a34a'}[r.statut]||'#333';
+lignesTableau+=`<tr>
+<td style="font-weight:600">${r.nom}</td>
+<td>${r.categorie}</td>
+<td>${r.emplacement}</td>
+<td style="text-align:center">${r.quantite}</td>
+<td style="text-align:center">${dateAff}</td>
+<td style="text-align:center;font-family:Consolas,monospace">${jTxt}</td>
+<td style="text-align:center;color:${couleurStatut};font-weight:700">${lab}</td>
+</tr>`;
+});
+const totalArt=indices.length;
+return`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Péremptions ${vehicule}</title>
+<style>
+@page{size:A4 landscape;margin:12mm 10mm}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1a1a1a;font-size:11px;line-height:1.4}
+.entete-pdf{background:#C41E3A;color:white;padding:16px 20px;border-radius:6px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.entete-pdf h1{font-size:16px;margin:0}
+.entete-pdf .sous-titre{font-size:10px;opacity:.85;margin-top:3px}
+.entete-pdf .date-info{text-align:right;font-size:10px}
+table{width:100%;border-collapse:collapse;margin-bottom:14px}
+th{background:#2a2d3a;color:white;padding:7px 8px;font-size:9px;text-transform:uppercase;letter-spacing:.3px;text-align:left}
+td{padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:10px}
+tr:nth-child(even){background:#f9fafb}
+.resume-bloc{display:flex;gap:12px;margin-bottom:14px}
+.resume-item{flex:1;text-align:center;padding:10px;border-radius:6px;border:1px solid #e5e7eb;background:#f9fafb}
+.resume-item .nombre{font-size:20px;font-weight:700;font-family:Consolas,monospace}
+.resume-item .etiquette{font-size:8px;text-transform:uppercase;color:#6b7280;margin-top:2px;letter-spacing:.3px}
+.c-vert{color:#16a34a}.c-jaune{color:#ca8a04}.c-orange{color:#ea580c}.c-rouge{color:#dc2626}
+.signatures{display:flex;justify-content:space-between;margin-top:30px;padding-top:10px}
+.zone-signature{width:40%}
+.zone-signature .label-sig{font-size:9px;color:#6b7280;margin-bottom:30px}
+.zone-signature .ligne-sig{border-top:1px solid #999;padding-top:4px;font-size:8px;color:#999}
+.pied-pdf{margin-top:20px;padding-top:8px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:8px;color:#999}
+</style></head><body>
+<div class="entete-pdf">
+<div><h1>Contrôle des Péremptions</h1><div class="sous-titre">SIS Genève — Compagnie Ambulances</div></div>
+<div class="date-info"><strong>${vehicule}</strong><br>${dateRevue}</div>
+</div>
+<div class="resume-bloc">
+<div class="resume-item"><div class="nombre">${totalArt}</div><div class="etiquette">Articles vérifiés</div></div>
+<div class="resume-item"><div class="nombre c-vert">${nbOk}</div><div class="etiquette">OK</div></div>
+<div class="resume-item"><div class="nombre c-jaune">${nbAttention}</div><div class="etiquette">Attention</div></div>
+<div class="resume-item"><div class="nombre c-orange">${nbUrgent}</div><div class="etiquette">Urgent</div></div>
+<div class="resume-item"><div class="nombre c-rouge">${nbPerime}</div><div class="etiquette">Périmés</div></div>
+</div>
+<table>
+<thead><tr><th>Article</th><th>Catégorie</th><th>Emplacement</th><th style="text-align:center">Qté</th><th style="text-align:center">Péremption</th><th style="text-align:center">Jours</th><th style="text-align:center">Statut</th></tr></thead>
+<tbody>${lignesTableau}</tbody>
+</table>
+<div class="signatures">
+<div class="zone-signature"><div class="label-sig">Signature du contrôleur :</div><div class="ligne-sig">Nom, date, signature</div></div>
+<div class="zone-signature"><div class="label-sig">Visa hiérarchie :</div><div class="ligne-sig">Nom, date, signature</div></div>
+</div>
+<div class="pied-pdf"><span>Document généré automatiquement — Contrôle des Péremptions SIS Genève</span><span>${dateRevue}</span></div>
+</body></html>`;
+}
+function ouvrirRapport(html){
+const fenetre=window.open('','_blank','width=1100,height=800');
+if(!fenetre){alert('Le navigateur a bloqué la fenêtre popup. Autorisez les popups pour ce site puis réessayez.');return}
+fenetre.document.write(html);
+fenetre.document.close();
+setTimeout(()=>{fenetre.print()},400);
+}
+function genererPDF(){
+const dateRevue=new Date().toLocaleDateString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const html=construireHtmlRapport(revueVehiculeActif,dateRevue,revueResultats);
+ouvrirRapport(html);
+}
+function chargerHistorique(){return historiqueSession}
+function sauverHistorique(h){historiqueSession=h}
+function archiverRevue(){
+const historique=chargerHistorique();
+const dateIso=new Date().toISOString();
+const dateAff=new Date().toLocaleDateString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const indices=Object.keys(revueResultats).map(Number);
+let nbP=0,nbU=0,nbA=0,nbO=0;
+indices.forEach(idx=>{const r=revueResultats[idx];if(r.statut==='perime')nbP++;else if(r.statut==='urgent')nbU++;else if(r.statut==='attention')nbA++;else nbO++});
+historique.unshift({
+id:'h_'+Math.random().toString(36).substr(2,9),
+dateIso:dateIso,
+dateAff:dateAff,
+vehicule:revueVehiculeActif,
+total:indices.length,
+ok:nbO,attention:nbA,urgent:nbU,perime:nbP,
+resultats:JSON.parse(JSON.stringify(revueResultats))
+});
+sauverHistorique(historique);
+}
+function afficherHistorique(){
+const zone=document.getElementById('zoneHistorique');
+const historique=chargerHistorique();
+if(!historique.length){zone.innerHTML='<div class="historique-vide">Aucun contrôle archivé pour le moment.</div>';return}
+let html=`<div class="tableau-conteneur"><table class="historique-tableau"><thead><tr>
+<th>Date</th><th>Véhicule</th><th>Articles</th><th>OK</th><th>Attention</th><th>Urgent</th><th>Périmés</th><th>Actions</th>
+</tr></thead><tbody>`;
+historique.forEach(h=>{
+html+=`<tr>
+<td style="font-family:var(--police-mono);font-size:.78rem">${h.dateAff}</td>
+<td><span class="vehicule-badge">${h.vehicule}</span></td>
+<td style="text-align:center">${h.total}</td>
+<td style="text-align:center;color:#4ade80;font-weight:600">${h.ok}</td>
+<td style="text-align:center;color:#fbbf24;font-weight:600">${h.attention}</td>
+<td style="text-align:center;color:#fb923c;font-weight:600">${h.urgent}</td>
+<td style="text-align:center;color:#f87171;font-weight:600">${h.perime}</td>
+<td style="white-space:nowrap">
+<button class="btn btn-gris btn-sm" onclick="reimprimer('${h.id}')" title="Réimprimer">🖨️</button>
+<button class="btn btn-gris btn-sm" onclick="supprimerRevue('${h.id}')" title="Supprimer">🗑️</button>
+</td></tr>`;
+});
+html+=`</tbody></table></div>`;
+zone.innerHTML=html;
+}
+function reimprimer(id){
+const historique=chargerHistorique();
+const h=historique.find(x=>x.id===id);
+if(!h)return;
+const html=construireHtmlRapport(h.vehicule,h.dateAff,h.resultats);
+ouvrirRapport(html);
+}
+function supprimerRevue(id){
+if(!confirm('Supprimer cette entrée de l\'historique ?'))return;
+let historique=chargerHistorique();
+historique=historique.filter(x=>x.id!==id);
+sauverHistorique(historique);
+afficherHistorique();
+}
+function viderHistorique(){
+if(!confirm('Supprimer tout l\'historique des contrôles ?'))return;
+sauverHistorique([]);
+afficherHistorique();
+}
+function verifierMdp(){
+if(document.getElementById('champMdp').value===MDP){
+adminOk=true;document.getElementById('verrou').style.display='none';
+document.getElementById('contenuAdmin').style.display='block';
+majFiltresAdmin();filtrerAdmin();afficherHistorique();
+}else{
+document.getElementById('mdpErreur').style.display='block';
+document.getElementById('champMdp').value='';
+setTimeout(()=>document.getElementById('mdpErreur').style.display='none',2000);
+}
+}
+function majResume(l){
+const z=document.getElementById('zoneResume');
+const t=l.length;const q=l.reduce((s,i)=>s+i.quantite,0);
+const p=l.filter(i=>calculerJours(i.peremption)<=0).length;
+const u=l.filter(i=>{const j=calculerJours(i.peremption);return j>0&&j<=30}).length;
+const a=l.filter(i=>{const j=calculerJours(i.peremption);return statutJours(j,i.seuil)==='attention'}).length;
+z.innerHTML=`
+<div class="resume-carte"><div class="resume-valeur" style="color:white">${t}</div><div class="resume-label">Références</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:white">${q}</div><div class="resume-label">Unités</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:#f87171">${p}</div><div class="resume-label">Périmés</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:#fb923c">${u}</div><div class="resume-label">< 30 j</div></div>
+<div class="resume-carte"><div class="resume-valeur" style="color:#fbbf24">${a}</div><div class="resume-label">Surveillance</div></div>`;
+}
+function majFiltresAdmin(){
+const v=[...new Set(inventaire.map(i=>i.vehicule))].sort();
+const c=[...new Set(inventaire.map(i=>i.categorie))].sort();
+const fv=document.getElementById('filtreVehicule');const fc=document.getElementById('filtreCategorie');
+const vs=fv.value;const cs=fc.value;
+fv.innerHTML='<option value="tous">Tous véhicules</option>'+v.map(x=>`<option>${x}</option>`).join('');
+fc.innerHTML='<option value="tous">Toutes catégories</option>'+c.map(x=>`<option>${x}</option>`).join('');
+fv.value=vs;fc.value=cs;
+}
+function filtrerAdmin(){
+const r=document.getElementById('champRecherche').value.toLowerCase();
+const v=document.getElementById('filtreVehicule').value;
+const c=document.getElementById('filtreCategorie').value;
+const s=document.getElementById('filtreStatut').value;
+let l=inventaire.filter(i=>{
+if(r&&!i.nom.toLowerCase().includes(r)&&!i.vehicule.toLowerCase().includes(r)&&!i.emplacement.toLowerCase().includes(r))return false;
+if(v!=='tous'&&i.vehicule!==v)return false;
+if(c!=='tous'&&i.categorie!==c)return false;
+if(s!=='tous'){const j=calculerJours(i.peremption);if(s!==statutJours(j,i.seuil))return false}
+return true;
+});
+l=trierListe(l);afficherTableau(l);majResume(l);
+document.getElementById('infoPagination').textContent=l.length+' / '+inventaire.length+' références';
+}
+function trierListe(l){
+const col=triActuel.colonne;const o=triActuel.ordre==='asc'?1:-1;
+return l.sort((a,b)=>{let va,vb;
+if(col==='jours'||col==='peremption'||col==='statut'){va=calculerJours(a.peremption);vb=calculerJours(b.peremption)}
+else if(col==='quantite'){va=a.quantite;vb=b.quantite}
+else{va=(a[col]||'').toLowerCase();vb=(b[col]||'').toLowerCase()}
+if(va<vb)return -o;if(va>vb)return o;return 0});
+}
+function trier(col){if(triActuel.colonne===col)triActuel.ordre=triActuel.ordre==='asc'?'desc':'asc';else triActuel={colonne:col,ordre:'asc'};filtrerAdmin()}
+function afficherTableau(l){
+const corps=document.getElementById('corpsTableau');corps.innerHTML='';
+l.forEach(item=>{const j=calculerJours(item.peremption);const s=statutJours(j,item.seuil);
+const tr=document.createElement('tr');
+tr.innerHTML=`<td style="font-weight:600">${item.nom}</td><td>${item.categorie}</td><td><span class="vehicule-badge">${item.vehicule}</span></td><td style="font-size:.78rem;color:var(--gris)">${item.emplacement}</td><td>${new Date(item.peremption).toLocaleDateString('fr-CH')}</td><td class="jours-cell ${classeJours(j)}">${j<=0?j:'+'+j} j</td><td><span class="statut-badge statut-${s}">${labelStatut(s)}</span></td><td>${item.quantite}</td><td style="white-space:nowrap"><button class="btn btn-gris btn-sm" onclick="editer('${item.id}')">✏️</button><button class="btn btn-gris btn-sm" onclick="supprimer('${item.id}')">🗑️</button></td>`;
+corps.appendChild(tr)});
+}
+function ouvrirAjout(){editionId=null;document.getElementById('modaleTitre').textContent='Ajouter';document.getElementById('btnSauvegarder').textContent='Ajouter';['champNom','champEmplacement'].forEach(c=>document.getElementById(c).value='');document.getElementById('champPeremption').value='';document.getElementById('champQuantite').value='1';document.getElementById('champSeuil').value='90';document.getElementById('modaleAjout').classList.add('visible')}
+function editer(id){const item=inventaire.find(i=>i.id===id);if(!item)return;editionId=id;document.getElementById('modaleTitre').textContent='Modifier';document.getElementById('btnSauvegarder').textContent='Enregistrer';document.getElementById('champNom').value=item.nom;document.getElementById('champCategorie').value=item.categorie;document.getElementById('champPeremption').value=item.peremption;document.getElementById('champVehicule').value=item.vehicule;document.getElementById('champEmplacement').value=item.emplacement;document.getElementById('champQuantite').value=item.quantite;document.getElementById('champSeuil').value=item.seuil;document.getElementById('modaleAjout').classList.add('visible')}
+function fermerModale(){document.getElementById('modaleAjout').classList.remove('visible')}
+function sauvegarder(){const nom=document.getElementById('champNom').value.trim();const cat=document.getElementById('champCategorie').value;const per=document.getElementById('champPeremption').value;const veh=document.getElementById('champVehicule').value;const emp=document.getElementById('champEmplacement').value.trim();const qte=parseInt(document.getElementById('champQuantite').value)||1;const seuil=parseInt(document.getElementById('champSeuil').value)||90;if(!nom||!per){alert('Nom et péremption obligatoires.');return}if(editionId){const idx=inventaire.findIndex(i=>i.id===editionId);if(idx>=0)inventaire[idx]={...inventaire[idx],nom,categorie:cat,peremption:per,vehicule:veh,emplacement:emp,quantite:qte,seuil}}else inventaire.push({id:genId(),nom,categorie:cat,peremption:per,vehicule:veh,emplacement:emp,quantite:qte,seuil});fermerModale();majFiltresAdmin();filtrerAdmin();remplirSelects()}
+function supprimer(id){if(!confirm('Supprimer ce consommable ?'))return;inventaire=inventaire.filter(i=>i.id!==id);majFiltresAdmin();filtrerAdmin();remplirSelects()}
+function exporterCSV(){let csv='nom;categorie;vehicule;emplacement;peremption;quantite;seuil;jours;statut\n';inventaire.forEach(i=>{const j=calculerJours(i.peremption);csv+=`${i.nom};${i.categorie};${i.vehicule};${i.emplacement};${i.peremption};${i.quantite};${i.seuil};${j};${labelStatut(statutJours(j,i.seuil))}\n`});const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='peremptions_sis_'+new Date().toISOString().slice(0,10)+'.csv';l.click()}
+function ouvrirImport(){document.getElementById('modaleImport').classList.add('visible')}
+function fermerImport(){document.getElementById('modaleImport').classList.remove('visible')}
+function importerCSV(){const f=document.getElementById('fichierCSV').files[0];if(!f){alert('Sélectionnez un fichier.');return}const r=new FileReader();r.onload=function(e){const lignes=e.target.result.split('\n').filter(l=>l.trim());let n=0;lignes.forEach((ligne,idx)=>{if(idx===0&&ligne.toLowerCase().includes('nom'))return;const c=ligne.split(';').map(x=>x.trim());if(c.length>=5){inventaire.push({id:genId(),nom:c[0]||'Sans nom',categorie:c[1]||'Divers',vehicule:c[2]||'César 41',emplacement:c[3]||'',peremption:c[4]||'2026-12-31',quantite:parseInt(c[5])||1,seuil:parseInt(c[6])||90});n++}});fermerImport();majFiltresAdmin();filtrerAdmin();remplirSelects();alert(n+' consommable(s) importé(s).')};r.readAsText(f,'UTF-8')}
+document.querySelectorAll('.modale-fond').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('visible')}));
+document.getElementById('champDateVerif').addEventListener('input',function(e){
+let v=this.value.replace(/[^\d]/g,'');
+if(v.length>8)v=v.slice(0,8);
+let r='';
+for(let i=0;i<v.length;i++){
+if(i===2||i===4)r+='.';
+r+=v[i];
+}
+this.value=r;
+});
+document.getElementById('champDateVerif').addEventListener('keydown',function(e){
+if(e.key==='Enter'){e.preventDefault();validerVerification()}
+});
+inventaire=chargerDonnees();
+remplirSelects();
+</script>
+
+
+</body></html>

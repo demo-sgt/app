@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Statistiques — Compagnie Ambulances SIS Genève</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--rouge:#C41E3A;--rouge-f:#9B1830;--rouge-clair:#FEF2F2;
+--noir:#1a1a2e;--gris:#6b7280;--gris-clair:#f8f9fa;--gris-bord:#e5e7eb;
+--blanc:#ffffff;--bleu:#1e40af;--bleu-c:#EFF6FF;
+--vert:#16a34a;--vert-c:#F0FDF4;--orange:#ea580c;--orange-c:#FFF7ED;
+--violet:#7c3aed;--violet-c:#F5F3FF;--cyan:#0891b2;--cyan-c:#ECFEFF;
+--rayon:10px;--ombre:0 2px 12px rgba(0,0,0,.06);
+}
+body{font-family:'DM Sans',sans-serif;background:#f0f2f5;color:var(--noir);min-height:100vh;display:flex}
+.barre-lat{width:220px;background:var(--noir);color:white;padding:20px 0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.logo-zone{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px}
+.logo-zone h2{font-size:.85rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--rouge)}
+.logo-zone p{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:4px}
+.nav-item{padding:10px 20px;font-size:.78rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;border-left:3px solid transparent;color:rgba(255,255,255,.6)}
+.nav-item:hover{background:rgba(255,255,255,.05);color:white}
+.nav-item.actif{background:rgba(196,30,58,.15);color:var(--rouge);border-left-color:var(--rouge);font-weight:600}
+.nav-item .icone{font-size:1.1rem;width:22px;text-align:center}
+.nav-sep{height:1px;background:rgba(255,255,255,.08);margin:8px 20px}
+.zone-fichier{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.zone-fichier label{display:block;padding:10px;background:var(--rouge);color:white;border-radius:6px;text-align:center;font-size:.72rem;font-weight:600;cursor:pointer;transition:background .2s}
+.zone-fichier label:hover{background:var(--rouge-f)}
+.zone-fichier input{display:none}
+.zone-fichier .statut-fichier{font-size:.62rem;color:rgba(255,255,255,.4);margin-top:6px;text-align:center}
+.contenu{margin-left:220px;flex:1;padding:24px;min-height:100vh}
+.entete{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.entete h1{font-size:1.3rem;font-weight:700;color:var(--noir)}
+.entete .date-maj{font-size:.72rem;color:var(--gris);background:var(--blanc);padding:6px 14px;border-radius:20px;border:1px solid var(--gris-bord)}
+.filtres{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;padding:14px 18px;background:var(--blanc);border-radius:var(--rayon);box-shadow:var(--ombre)}
+.filtre-grp{display:flex;flex-direction:column;gap:3px}
+.filtre-grp label{font-size:.62rem;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:.5px}
+.filtre-grp select,.filtre-grp input{padding:6px 10px;border:1px solid var(--gris-bord);border-radius:6px;font-size:.75rem;font-family:inherit;background:var(--blanc);min-width:130px}
+.filtre-grp select:focus,.filtre-grp input:focus{outline:none;border-color:var(--rouge);box-shadow:0 0 0 2px rgba(196,30,58,.1)}
+.btn-filtre{align-self:flex-end;padding:6px 16px;background:var(--rouge);color:white;border:none;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-filtre:hover{background:var(--rouge-f)}
+.btn-reset{align-self:flex-end;padding:6px 16px;background:var(--gris-clair);color:var(--gris);border:1px solid var(--gris-bord);border-radius:6px;font-size:.72rem;font-weight:500;cursor:pointer;font-family:inherit}
+.section{display:none}
+.section.visible{display:block}
+.kpi-grille{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--blanc);border-radius:var(--rayon);padding:16px 18px;box-shadow:var(--ombre);border-left:4px solid var(--gris-bord);transition:transform .15s}
+.kpi:hover{transform:translateY(-2px)}
+.kpi.rouge{border-left-color:var(--rouge)}
+.kpi.bleu{border-left-color:var(--bleu)}
+.kpi.vert{border-left-color:var(--vert)}
+.kpi.orange{border-left-color:var(--orange)}
+.kpi.violet{border-left-color:var(--violet)}
+.kpi.cyan{border-left-color:var(--cyan)}
+.kpi-label{font-size:.65rem;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.kpi-valeur{font-size:1.6rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--noir)}
+.kpi-detail{font-size:.65rem;color:var(--gris);margin-top:4px}
+.kpi-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.6rem;font-weight:600;margin-top:4px}
+.badge-positif{background:var(--vert-c);color:var(--vert)}
+.badge-negatif{background:var(--rouge-clair);color:var(--rouge)}
+.badge-neutre{background:var(--gris-clair);color:var(--gris)}
+.graphiques-grille{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.graphiques-grille.trois{grid-template-columns:1fr 1fr 1fr}
+.graphiques-grille.plein{grid-template-columns:1fr}
+.carte-graph{background:var(--blanc);border-radius:var(--rayon);padding:18px;box-shadow:var(--ombre)}
+.carte-graph h3{font-size:.82rem;font-weight:700;color:var(--noir);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.carte-graph h3 .icone-titre{font-size:1rem}
+.carte-graph canvas{max-height:300px}
+.carte-map{height:450px;border-radius:var(--rayon);overflow:hidden;box-shadow:var(--ombre);margin-bottom:20px}
+.controles-carte{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.controles-carte button{padding:6px 14px;border-radius:6px;border:1px solid var(--gris-bord);background:var(--blanc);font-size:.72rem;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.controles-carte button.actif{background:var(--rouge);color:white;border-color:var(--rouge)}
+.controles-carte button:hover:not(.actif){background:var(--gris-clair)}
+.tableau-wrap{overflow-x:auto;border-radius:var(--rayon);box-shadow:var(--ombre);margin-bottom:20px}
+.tableau-wrap table{width:100%;border-collapse:collapse;background:var(--blanc);font-size:.75rem}
+.tableau-wrap th{background:var(--noir);color:white;padding:10px 14px;text-align:left;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.3px;position:sticky;top:0}
+.tableau-wrap td{padding:8px 14px;border-bottom:1px solid var(--gris-bord)}
+.tableau-wrap tr:nth-child(even){background:var(--gris-clair)}
+.tableau-wrap tr:hover{background:rgba(196,30,58,.04)}
+.section-titre{font-size:1rem;font-weight:700;color:var(--noir);margin:24px 0 14px;display:flex;align-items:center;gap:8px}
+.export-zone{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn-export{padding:10px 20px;border-radius:8px;border:2px solid var(--rouge);background:var(--blanc);color:var(--rouge);font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-export:hover{background:var(--rouge);color:white}
+.chargement{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px}
+.chargement .spinner{width:40px;height:40px;border:4px solid var(--gris-bord);border-top-color:var(--rouge);border-radius:50%;animation:rotation .8s linear infinite}
+@keyframes rotation{to{transform:rotate(360deg)}}
+.chargement p{font-size:.85rem;color:var(--gris)}
+.vide{text-align:center;padding:60px 20px;color:var(--gris)}
+.vide .icone-vide{font-size:3rem;margin-bottom:12px}
+.legende-temps{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.legende-temps .leg{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--gris)}
+.legende-temps .pastille{width:12px;height:12px;border-radius:3px}
+.alerte-info{padding:12px 16px;background:var(--bleu-c);border-left:4px solid var(--bleu);border-radius:0 var(--rayon) var(--rayon) 0;font-size:.75rem;color:var(--bleu);margin-bottom:16px}
+@media(max-width:1400px){.kpi-grille{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1000px){.barre-lat{display:none}.contenu{margin-left:0}.kpi-grille{grid-template-columns:repeat(2,1fr)}.graphiques-grille{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="barre-lat">
+<div class="logo-zone">
+<h2>📊 Statistiques</h2>
+<p>Compagnie Ambulances — SIS Genève</p>
+</div>
+<div class="nav-item actif" onclick="naviguer('vue-ensemble')"><span class="icone">📈</span> Vue d'ensemble</div>
+<div class="nav-item" onclick="naviguer('temps-ops')"><span class="icone">⏱️</span> Temps opérationnels</div>
+<div class="nav-item" onclick="naviguer('cartographie')"><span class="icone">🗺️</span> Cartographie</div>
+<div class="nav-item" onclick="naviguer('saisonnalite')"><span class="icone">📅</span> Saisonnalité</div>
+<div class="nav-item" onclick="naviguer('charge')"><span class="icone">👥</span> Charge équipages</div>
+<div class="nav-sep"></div>
+<div class="nav-item" onclick="naviguer('certification')"><span class="icone">📋</span> Certification</div>
+<div class="zone-fichier">
+<label for="fichierExcel">📂 Charger Extraction ATTRIB</label>
+<input type="file" id="fichierExcel" accept=".xlsx,.xls,.csv">
+<div class="statut-fichier" id="statutFichier">Aucun fichier chargé</div>
+</div>
+</nav>
+
+<main class="contenu">
+<div class="entete">
+<h1>Dashboard d'activité opérationnelle</h1>
+<span class="date-maj" id="dateMaj">—</span>
+</div>
+
+<div class="filtres" id="barreFiltre" style="display:none">
+<div class="filtre-grp">
+<label>Période du</label>
+<input type="date" id="filtreDateDebut">
+</div>
+<div class="filtre-grp">
+<label>Au</label>
+<input type="date" id="filtreDateFin">
+</div>
+<div class="filtre-grp">
+<label>Type de mission</label>
+<select id="filtreType"><option value="">Tous</option></select>
+</div>
+<div class="filtre-grp">
+<label>Pathologie</label>
+<select id="filtrePatho"><option value="">Toutes</option></select>
+</div>
+<div class="filtre-grp">
+<label>Secteur</label>
+<select id="filtreSecteur"><option value="">Tous</option></select>
+</div>
+<div class="filtre-grp">
+<label>Groupe</label>
+<select id="filtreGroupe"><option value="">Tous</option></select>
+</div>
+<button class="btn-filtre" onclick="appliquerFiltres()">Filtrer</button>
+<button class="btn-reset" onclick="reinitialiserFiltres()">Réinitialiser</button>
+</div>
+
+<div id="zoneChargement" class="chargement">
+<div class="spinner"></div>
+<p>Chargement de <strong>Extraction_Attrib.xlsx</strong> en cours…</p>
+<p style="font-size:.7rem;color:var(--gris)" id="msgChargement">Recherche du fichier dans le même dossier</p>
+</div>
+
+<div id="zoneContenu" style="display:none">
+
+<!-- VUE D'ENSEMBLE -->
+<section id="vue-ensemble" class="section visible">
+<div class="kpi-grille" id="grilleKpi"></div>
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">📊</span> Répartition par type de mission</h3><canvas id="graphType"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">🏥</span> Répartition par pathologie</h3><canvas id="graphPatho"></canvas></div>
+</div>
+<div class="graphiques-grille plein">
+<div class="carte-graph"><h3><span class="icone-titre">📈</span> Volume d'interventions par mois</h3><canvas id="graphVolumeMois"></canvas></div>
+</div>
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">🎯</span> Répartition par statut</h3><canvas id="graphStatut"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">⚕️</span> Répartition NACA</h3><canvas id="graphNaca"></canvas></div>
+</div>
+</section>
+
+<!-- TEMPS OPÉRATIONNELS -->
+<section id="temps-ops" class="section">
+<div class="alerte-info">Les délais sont exprimés en minutes. Les valeurs affichées sont des médianes, plus robustes que les moyennes face aux valeurs extrêmes.</div>
+<div class="kpi-grille" id="grilleTemps"></div>
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">⏱️</span> Décomposition des délais par type de mission</h3><canvas id="graphDelaisType"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">📍</span> Délai départ → site par secteur</h3><canvas id="graphDelaisSecteur"></canvas></div>
+</div>
+<div class="graphiques-grille plein">
+<div class="carte-graph"><h3><span class="icone-titre">📉</span> Temps sur scène par pathologie</h3><canvas id="graphScenePatho"></canvas></div>
+</div>
+<div class="section-titre">📋 Détail par intervention</div>
+<div class="tableau-wrap" style="max-height:400px;overflow-y:auto"><table id="tableauTemps"></table></div>
+</section>
+
+<!-- CARTOGRAPHIE -->
+<section id="cartographie" class="section">
+<div class="controles-carte">
+<button onclick="modeCarte('marqueurs',this)">📍 Marqueurs</button>
+<button class="actif" onclick="modeCarte('chaleur',this)">🔥 Carte de chaleur</button>
+<button onclick="modeCarte('secteurs',this)">📊 Par secteur</button>
+</div>
+<div id="carte" class="carte-map"></div>
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">📍</span> Interventions par secteur</h3><canvas id="graphSecteur"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">🕐</span> Répartition horaire géographique</h3><canvas id="graphHeureSecteur"></canvas></div>
+</div>
+</section>
+
+<!-- SAISONNALITÉ -->
+<section id="saisonnalite" class="section">
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">📅</span> Interventions par jour de la semaine</h3><canvas id="graphJour"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">🕐</span> Interventions par tranche horaire</h3><canvas id="graphHeure"></canvas></div>
+</div>
+<div class="graphiques-grille plein">
+<div class="carte-graph"><h3><span class="icone-titre">📈</span> Tendance mensuelle (superposition annuelle)</h3><canvas id="graphTendance"></canvas></div>
+</div>
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">🔥</span> Matrice jour × heure</h3><canvas id="graphMatrice"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">🏥</span> Pathologies par mois</h3><canvas id="graphPathoMois"></canvas></div>
+</div>
+</section>
+
+<!-- CHARGE ÉQUIPAGES -->
+<section id="charge" class="section">
+<div class="kpi-grille" id="grilleCharge"></div>
+<div class="graphiques-grille">
+<div class="carte-graph"><h3><span class="icone-titre">👥</span> Interventions par groupe</h3><canvas id="graphChargeGroupe"></canvas></div>
+<div class="carte-graph"><h3><span class="icone-titre">🚑</span> Interventions par ambulance</h3><canvas id="graphChargeAmb"></canvas></div>
+</div>
+<div class="graphiques-grille plein">
+<div class="carte-graph"><h3><span class="icone-titre">⏳</span> Durée cumulée d'engagement par groupe (heures)</h3><canvas id="graphDureeGroupe"></canvas></div>
+</div>
+<div class="section-titre">📋 Détail par groupe</div>
+<div class="tableau-wrap"><table id="tableauCharge"></table></div>
+</section>
+
+<!-- CERTIFICATION -->
+<section id="certification" class="section">
+<div class="alerte-info">Les tableaux ci-dessous sont pré-formatés pour répondre aux exigences de la certification nationale. Exportez-les directement en CSV.</div>
+<div class="section-titre">📊 Interventions par catégorie NACA</div>
+<div class="tableau-wrap"><table id="tableauNaca"></table></div>
+<div class="section-titre">📊 Interventions par type et priorité</div>
+<div class="tableau-wrap"><table id="tableauTypeCert"></table></div>
+<div class="section-titre">📊 Interventions par pathologie</div>
+<div class="tableau-wrap"><table id="tableauPathoCert"></table></div>
+<div class="section-titre">📊 Indicateurs de délais</div>
+<div class="tableau-wrap"><table id="tableauDelaisCert"></table></div>
+<div class="export-zone">
+<button class="btn-export" onclick="exporterCSV('naca')">📥 Export NACA (CSV)</button>
+<button class="btn-export" onclick="exporterCSV('type')">📥 Export Types (CSV)</button>
+<button class="btn-export" onclick="exporterCSV('patho')">📥 Export Pathologies (CSV)</button>
+<button class="btn-export" onclick="exporterCSV('delais')">📥 Export Délais (CSV)</button>
+<button class="btn-export" onclick="exporterCSV('complet')">📥 Export complet (CSV)</button>
+</div>
+</section>
+
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script>
+var donneesBrutes=[], donneesFiltrees=[], carteLeaflet=null, coucheChaleur=null, coucheMarqueurs=null, graphiques={};
+var COULEURS={rouge:'#C41E3A',bleu:'#1e40af',vert:'#16a34a',orange:'#ea580c',violet:'#7c3aed',cyan:'#0891b2',rose:'#db2777',indigo:'#4f46e5',emeraude:'#059669',ambre:'#d97706'};
+var PALETTE=['#C41E3A','#1e40af','#16a34a','#ea580c','#7c3aed','#0891b2','#db2777','#4f46e5','#059669','#d97706','#be185d','#1d4ed8','#15803d','#c2410c','#6d28d9'];
+
+function heureEnMin(h){if(!h||h==='')return null;var p=h.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+function diffMin(h1,h2){var a=heureEnMin(h1),b=heureEnMin(h2);if(a===null||b===null)return null;var d=b-a;return d<0?d+1440:d;}
+function mediane(arr){var t=arr.filter(function(v){return v!==null&&!isNaN(v)});if(t.length===0)return 0;t.sort(function(a,b){return a-b});var m=Math.floor(t.length/2);return t.length%2?t[m]:(t[m-1]+t[m])/2;}
+function moyenne(arr){var t=arr.filter(function(v){return v!==null&&!isNaN(v)});return t.length?t.reduce(function(a,b){return a+b},0)/t.length:0;}
+function compter(arr,cle){var r={};arr.forEach(function(d){var v=d[cle]||'Inconnu';r[v]=(r[v]||0)+1;});return r;}
+
+function mapperLigne(r){
+return{
+id:r['ID_Intervention']||'',date:r['Date']||'',jour:r['Jour_Semaine']||'',
+hAlerte:r['Heure_Alerte']||'',hDepart:r['Heure_Depart']||'',
+hArrivee:r['Heure_Arrivee_Site']||'',hQuitte:r['Heure_Quitte_Site']||'',
+hHopital:r['Heure_Arrivee_Hopital']||'',type:r['Type_Mission']||'',
+patho:r['Pathologie']||'',adresse:r['Adresse']||'',
+lat:parseFloat(r['Latitude'])||0,lng:parseFloat(r['Longitude'])||0,
+secteur:r['Secteur']||'',groupe:r['Groupe']||'',ambulance:r['Ambulance']||'',
+naca:r['NACA']!=null?parseInt(r['NACA']):0,age:r['Age_Patient']!=null?parseInt(r['Age_Patient']):0,
+sexe:r['Sexe']||'',destination:r['Destination']||'',statut:r['Statut']||'',
+dAlerte_Depart:diffMin(r['Heure_Alerte'],r['Heure_Depart']),
+dDepart_Site:diffMin(r['Heure_Depart'],r['Heure_Arrivee_Site']),
+dSurScene:diffMin(r['Heure_Arrivee_Site'],r['Heure_Quitte_Site']),
+dTransport:diffMin(r['Heure_Quitte_Site'],r['Heure_Arrivee_Hopital']),
+dTotal:diffMin(r['Heure_Alerte'],r['Heure_Arrivee_Hopital']),
+heure:r['Heure_Alerte']?parseInt(r['Heure_Alerte'].split(':')[0]):0,
+mois:r['Date']?r['Date'].substring(0,7):'',annee:r['Date']?r['Date'].substring(0,4):''
+};}
+
+function chargerDonnees(json){
+donneesBrutes=json.map(mapperLigne);
+donneesFiltrees=donneesBrutes.slice();
+remplirFiltres();
+document.getElementById('zoneChargement').style.display='none';
+document.getElementById('zoneContenu').style.display='block';
+document.getElementById('barreFiltre').style.display='flex';
+document.getElementById('statutFichier').textContent=donneesBrutes.length+' interventions chargées';
+document.getElementById('dateMaj').textContent='Données : '+donneesBrutes.length+' interventions';
+majTout();
+}
+
+document.getElementById('fichierExcel').addEventListener('change',function(e){
+var f=e.target.files[0];if(!f)return;
+document.getElementById('statutFichier').textContent='Chargement...';
+var lecteur=new FileReader();
+lecteur.onload=function(ev){
+var wb=XLSX.read(ev.target.result,{type:'array'});
+var ws=wb.Sheets[wb.SheetNames[0]];
+chargerDonnees(XLSX.utils.sheet_to_json(ws));
+};
+lecteur.readAsArrayBuffer(f);
+});
+
+function remplirFiltres(){
+var types={},pathos={},secteurs={},groupes={};
+donneesBrutes.forEach(function(d){
+types[d.type]=1;pathos[d.patho]=1;secteurs[d.secteur]=1;groupes[d.groupe]=1;
+});
+remplirSelect('filtreType',Object.keys(types).sort());
+remplirSelect('filtrePatho',Object.keys(pathos).sort());
+remplirSelect('filtreSecteur',Object.keys(secteurs).sort());
+remplirSelect('filtreGroupe',Object.keys(groupes).sort());
+if(donneesBrutes.length){
+var dates=donneesBrutes.map(function(d){return d.date}).sort();
+document.getElementById('filtreDateDebut').value=dates[0];
+document.getElementById('filtreDateFin').value=dates[dates.length-1];
+}
+}
+function remplirSelect(id,vals){
+var s=document.getElementById(id);var prem=s.options[0].text;
+s.innerHTML='<option value="">'+prem+'</option>';
+vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});
+}
+function appliquerFiltres(){
+var dd=document.getElementById('filtreDateDebut').value;
+var df=document.getElementById('filtreDateFin').value;
+var ft=document.getElementById('filtreType').value;
+var fp=document.getElementById('filtrePatho').value;
+var fs=document.getElementById('filtreSecteur').value;
+var fg=document.getElementById('filtreGroupe').value;
+donneesFiltrees=donneesBrutes.filter(function(d){
+if(dd&&d.date<dd)return false;
+if(df&&d.date>df)return false;
+if(ft&&d.type!==ft)return false;
+if(fp&&d.patho!==fp)return false;
+if(fs&&d.secteur!==fs)return false;
+if(fg&&d.groupe!==fg)return false;
+return true;
+});
+majTout();
+}
+function reinitialiserFiltres(){
+document.getElementById('filtreType').value='';
+document.getElementById('filtrePatho').value='';
+document.getElementById('filtreSecteur').value='';
+document.getElementById('filtreGroupe').value='';
+if(donneesBrutes.length){
+var dates=donneesBrutes.map(function(d){return d.date}).sort();
+document.getElementById('filtreDateDebut').value=dates[0];
+document.getElementById('filtreDateFin').value=dates[dates.length-1];
+}
+donneesFiltrees=donneesBrutes.slice();
+majTout();
+}
+
+function naviguer(id){
+document.querySelectorAll('.section').forEach(function(s){s.classList.remove('visible')});
+document.getElementById(id).classList.add('visible');
+document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('actif')});
+event.currentTarget.classList.add('actif');
+setTimeout(function(){
+if(id==='cartographie'){if(carteLeaflet)carteLeaflet.invalidateSize();majCarto();}
+if(id==='saisonnalite')majSaison();
+if(id==='charge')majCharge();
+if(id==='temps-ops')majTemps();
+if(id==='vue-ensemble')majGraphVueEnsemble();
+if(id==='certification')majCertification();
+},50);
+}
+
+function majTout(){
+majKpi();majGraphVueEnsemble();majTemps();majCarto();majSaison();majCharge();majCertification();
+}
+
+function majKpi(){
+var d=donneesFiltrees,n=d.length;
+var p1=d.filter(function(x){return x.type==='P1'}).length;
+var p2=d.filter(function(x){return x.type==='P2'}).length;
+var p3=d.filter(function(x){return x.type==='P3'}).length;
+var smur=d.filter(function(x){return x.type==='SMUR'}).length;
+var transp=d.filter(function(x){return x.statut==='Transporté'}).length;
+var mAlerte=mediane(d.map(function(x){return x.dAlerte_Depart}));
+var mRoute=mediane(d.map(function(x){return x.dDepart_Site}));
+var mScene=mediane(d.map(function(x){return x.dSurScene}));
+var mTransp=mediane(d.filter(function(x){return x.dTransport!==null}).map(function(x){return x.dTransport}));
+var mTotal=mediane(d.filter(function(x){return x.dTotal!==null}).map(function(x){return x.dTotal}));
+var ageM=Math.round(moyenne(d.map(function(x){return x.age})));
+var nacaM=moyenne(d.map(function(x){return x.naca})).toFixed(1);
+var txTransp=n?Math.round(transp/n*100):0;
+var secteurs=Object.keys(compter(d,'secteur')).length;
+var ambUniques=Object.keys(compter(d,'ambulance')).length;
+
+var kpis=[
+{label:'Total interventions',valeur:n,detail:'Période filtrée',classe:'rouge'},
+{label:'P1 (urgences)',valeur:p1,detail:n?Math.round(p1/n*100)+'% du total':'—',classe:'rouge'},
+{label:'P2',valeur:p2,detail:n?Math.round(p2/n*100)+'% du total':'—',classe:'orange'},
+{label:'P3',valeur:p3,detail:n?Math.round(p3/n*100)+'% du total':'—',classe:'bleu'},
+{label:'SMUR',valeur:smur,detail:n?Math.round(smur/n*100)+'% du total':'—',classe:'violet'},
+{label:'Délai alerte → départ',valeur:mAlerte.toFixed(1)+' min',detail:'Médiane',classe:'cyan'},
+{label:'Délai départ → site',valeur:mRoute.toFixed(1)+' min',detail:'Médiane',classe:'cyan'},
+{label:'Temps sur scène',valeur:mScene.toFixed(1)+' min',detail:'Médiane',classe:'orange'},
+{label:'Délai transport',valeur:mTransp.toFixed(1)+' min',detail:'Médiane — transportés',classe:'vert'},
+{label:'Délai total',valeur:mTotal.toFixed(1)+' min',detail:'Alerte → hôpital (médiane)',classe:'rouge'},
+{label:'Taux de transport',valeur:txTransp+'%',detail:transp+' / '+n,classe:'vert'},
+{label:'Âge moyen patients',valeur:ageM+' ans',detail:'Moyenne',classe:'bleu'},
+{label:'NACA moyen',valeur:nacaM,detail:'Score de gravité moyen',classe:'violet'},
+{label:'Secteurs couverts',valeur:secteurs,detail:'Secteurs géographiques',classe:'cyan'},
+{label:'Ambulances engagées',valeur:ambUniques,detail:'Véhicules distincts',classe:'orange'},
+];
+var html='';
+kpis.forEach(function(k){
+html+='<div class="kpi '+k.classe+'"><div class="kpi-label">'+k.label+'</div><div class="kpi-valeur">'+k.valeur+'</div><div class="kpi-detail">'+k.detail+'</div></div>';
+});
+document.getElementById('grilleKpi').innerHTML=html;
+}
+
+function creerOuMaj(id,type,data,options){
+if(graphiques[id]){graphiques[id].destroy();}
+var ctx=document.getElementById(id);
+if(!ctx)return;
+graphiques[id]=new Chart(ctx,{type:type,data:data,options:Object.assign({responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:{family:'DM Sans',size:11},usePointStyle:true,pointStyle:'rectRounded'}}},scales:{}},options||{})});
+}
+
+function majGraphVueEnsemble(){
+var d=donneesFiltrees;
+var types=compter(d,'type');
+creerOuMaj('graphType','doughnut',{
+labels:Object.keys(types),
+datasets:[{data:Object.values(types),backgroundColor:['#C41E3A','#ea580c','#1e40af','#7c3aed'],borderWidth:2,borderColor:'#fff'}]
+},{plugins:{legend:{position:'bottom'}}});
+
+var pathos=compter(d,'patho');
+var pEntries=Object.entries(pathos).sort(function(a,b){return b[1]-a[1]});
+creerOuMaj('graphPatho','bar',{
+labels:pEntries.map(function(e){return e[0]}),
+datasets:[{label:'Interventions',data:pEntries.map(function(e){return e[1]}),backgroundColor:'#C41E3A',borderRadius:4}]
+},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{ticks:{font:{size:10}}}}});
+
+var moisCounts={};d.forEach(function(x){moisCounts[x.mois]=(moisCounts[x.mois]||0)+1;});
+var moisTries=Object.keys(moisCounts).sort();
+creerOuMaj('graphVolumeMois','line',{
+labels:moisTries,
+datasets:[{label:'Interventions',data:moisTries.map(function(m){return moisCounts[m]}),borderColor:'#C41E3A',backgroundColor:'rgba(196,30,58,.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#C41E3A'}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}}});
+
+var statuts=compter(d,'statut');
+creerOuMaj('graphStatut','doughnut',{
+labels:Object.keys(statuts),
+datasets:[{data:Object.values(statuts),backgroundColor:['#16a34a','#ea580c','#C41E3A','#6b7280','#7c3aed'],borderWidth:2,borderColor:'#fff'}]
+},{plugins:{legend:{position:'bottom'}}});
+
+var nacas={};d.forEach(function(x){var k='NACA '+x.naca;nacas[k]=(nacas[k]||0)+1;});
+var nacaTries=Object.keys(nacas).sort();
+creerOuMaj('graphNaca','bar',{
+labels:nacaTries,
+datasets:[{label:'Interventions',data:nacaTries.map(function(k){return nacas[k]}),backgroundColor:nacaTries.map(function(k){var n=parseInt(k.split(' ')[1]);return n>=5?'#C41E3A':n>=3?'#ea580c':'#1e40af';}),borderRadius:4}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}}});
+}
+
+function majTemps(){
+var d=donneesFiltrees;
+var mAD=mediane(d.map(function(x){return x.dAlerte_Depart}));
+var mDS=mediane(d.map(function(x){return x.dDepart_Site}));
+var mSS=mediane(d.map(function(x){return x.dSurScene}));
+var mTr=mediane(d.filter(function(x){return x.dTransport!==null}).map(function(x){return x.dTransport}));
+var html='';
+[{l:'Alerte → Départ',v:mAD.toFixed(1)+' min',c:'cyan',obj:'< 3 min'},
+{l:'Départ → Site',v:mDS.toFixed(1)+' min',c:'bleu',obj:'< 10 min (P1)'},
+{l:'Temps sur scène',v:mSS.toFixed(1)+' min',c:'orange',obj:'< 20 min (trauma)'},
+{l:'Transport → Hôpital',v:mTr.toFixed(1)+' min',c:'vert',obj:'Variable'}
+].forEach(function(k){
+html+='<div class="kpi '+k.c+'"><div class="kpi-label">'+k.l+'</div><div class="kpi-valeur">'+k.v+'</div><div class="kpi-detail">Objectif : '+k.obj+'</div></div>';
+});
+document.getElementById('grilleTemps').innerHTML=html;
+
+var typesU=[...new Set(d.map(function(x){return x.type}))].sort();
+creerOuMaj('graphDelaisType','bar',{
+labels:typesU,
+datasets:[
+{label:'Alerte→Départ',data:typesU.map(function(t){return mediane(d.filter(function(x){return x.type===t}).map(function(x){return x.dAlerte_Depart})).toFixed(1)}),backgroundColor:'#0891b2',borderRadius:3},
+{label:'Départ→Site',data:typesU.map(function(t){return mediane(d.filter(function(x){return x.type===t}).map(function(x){return x.dDepart_Site})).toFixed(1)}),backgroundColor:'#1e40af',borderRadius:3},
+{label:'Sur scène',data:typesU.map(function(t){return mediane(d.filter(function(x){return x.type===t}).map(function(x){return x.dSurScene})).toFixed(1)}),backgroundColor:'#ea580c',borderRadius:3},
+{label:'Transport',data:typesU.map(function(t){return mediane(d.filter(function(x){return x.type===t&&x.dTransport!==null}).map(function(x){return x.dTransport})).toFixed(1)}),backgroundColor:'#16a34a',borderRadius:3}
+]
+},{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,title:{display:true,text:'Minutes'}}},plugins:{legend:{position:'bottom'}}});
+
+var secteursU=[...new Set(d.map(function(x){return x.secteur}))].sort();
+creerOuMaj('graphDelaisSecteur','bar',{
+labels:secteursU,
+datasets:[{label:'Départ → Site (médiane)',data:secteursU.map(function(s){return mediane(d.filter(function(x){return x.secteur===s}).map(function(x){return x.dDepart_Site})).toFixed(1)}),backgroundColor:secteursU.map(function(_,i){return PALETTE[i%PALETTE.length]}),borderRadius:4}]
+},{plugins:{legend:{display:false}},scales:{y:{title:{display:true,text:'Minutes'},beginAtZero:true},x:{grid:{display:false}}}});
+
+var pathosU=[...new Set(d.map(function(x){return x.patho}))].sort();
+creerOuMaj('graphScenePatho','bar',{
+labels:pathosU,
+datasets:[{label:'Temps sur scène (médiane)',data:pathosU.map(function(p){return mediane(d.filter(function(x){return x.patho===p}).map(function(x){return x.dSurScene})).toFixed(1)}),backgroundColor:'#ea580c',borderRadius:4}]
+},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Minutes'},beginAtZero:true},y:{ticks:{font:{size:10}}}}});
+
+var thtml='<thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Pathologie</th><th>Alerte→Dép.</th><th>Dép.→Site</th><th>Sur scène</th><th>Transport</th><th>Total</th></tr></thead><tbody>';
+d.slice(0,100).forEach(function(x){
+thtml+='<tr><td>'+x.id+'</td><td>'+x.date+'</td><td>'+x.type+'</td><td>'+x.patho+'</td><td>'+(x.dAlerte_Depart||'—')+'</td><td>'+(x.dDepart_Site||'—')+'</td><td>'+(x.dSurScene||'—')+'</td><td>'+(x.dTransport||'—')+'</td><td>'+(x.dTotal||'—')+'</td></tr>';
+});
+thtml+='</tbody>';
+document.getElementById('tableauTemps').innerHTML=thtml;
+}
+
+function majCarto(){
+if(!carteLeaflet){
+carteLeaflet=L.map('carte').setView([46.2044,6.1432],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(carteLeaflet);
+}
+modeCarte('chaleur',document.querySelector('.controles-carte button.actif'));
+
+var secteurs=compter(donneesFiltrees,'secteur');
+var secLabels=Object.keys(secteurs).sort();
+creerOuMaj('graphSecteur','doughnut',{
+labels:secLabels,
+datasets:[{data:secLabels.map(function(s){return secteurs[s]}),backgroundColor:secLabels.map(function(_,i){return PALETTE[i%PALETTE.length]}),borderWidth:2,borderColor:'#fff'}]
+},{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}});
+
+var secteursU=[...new Set(donneesFiltrees.map(function(x){return x.secteur}))].sort();
+var tranches=['00-05','06-11','12-17','18-23'];
+var datasets=secteursU.map(function(s,i){
+return{label:s,data:tranches.map(function(t){
+var deb=parseInt(t.split('-')[0]),fin=parseInt(t.split('-')[1]);
+return donneesFiltrees.filter(function(x){return x.secteur===s&&x.heure>=deb&&x.heure<=fin}).length;
+}),backgroundColor:PALETTE[i%PALETTE.length],borderRadius:3};
+});
+creerOuMaj('graphHeureSecteur','bar',{labels:tranches.map(function(t){return t+'h'}),datasets:datasets},{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{legend:{position:'bottom'}}});
+}
+
+function modeCarte(mode,btn){
+document.querySelectorAll('.controles-carte button').forEach(function(b){b.classList.remove('actif')});
+if(btn)btn.classList.add('actif');
+if(coucheMarqueurs){carteLeaflet.removeLayer(coucheMarqueurs);coucheMarqueurs=null;}
+if(coucheChaleur){carteLeaflet.removeLayer(coucheChaleur);coucheChaleur=null;}
+
+var d=donneesFiltrees;
+var couleursType={P1:'#C41E3A',P2:'#ea580c',P3:'#1e40af',SMUR:'#7c3aed'};
+
+if(mode==='marqueurs'){
+coucheMarqueurs=L.layerGroup();
+d.forEach(function(x){
+if(!x.lat||!x.lng)return;
+var couleur=couleursType[x.type]||'#6b7280';
+var m=L.circleMarker([x.lat,x.lng],{radius:7,fillColor:couleur,color:'#fff',weight:2,opacity:1,fillOpacity:.8});
+m.bindPopup('<strong>'+x.id+'</strong><br>'+x.date+' '+x.hAlerte+'<br><strong>'+x.type+'</strong> — '+x.patho+'<br>'+x.adresse+'<br>NACA '+x.naca);
+coucheMarqueurs.addLayer(m);
+});
+coucheMarqueurs.addTo(carteLeaflet);
+}else if(mode==='chaleur'){
+var points=d.filter(function(x){return x.lat&&x.lng}).map(function(x){return[x.lat,x.lng,1]});
+coucheChaleur=L.heatLayer(points,{radius:40,blur:20,maxZoom:17,max:1.0,minOpacity:0.4,gradient:{0.2:'blue',0.4:'cyan',0.5:'lime',0.65:'yellow',0.8:'orange',1:'red'}});
+coucheChaleur.addTo(carteLeaflet);
+}else if(mode==='secteurs'){
+var secteurs=compter(d,'secteur');
+coucheMarqueurs=L.layerGroup();
+var centres={'Genève':[46.2044,6.1432],'Carouge':[46.1835,6.1390],'Vernier':[46.2170,6.0850],'Lancy':[46.1880,6.1150],'Chêne-Bougeries':[46.1985,6.1850],'Chêne-Bourg':[46.2030,6.2010],'Meyrin':[46.2340,6.0780],'Thônex':[46.2010,6.1950],'Onex':[46.1840,6.1000],'Plan-les-Ouates':[46.1680,6.1160],'Grand-Lancy':[46.1780,6.1200],'Bernex':[46.1760,6.0750]};
+Object.keys(secteurs).forEach(function(s,i){
+var c=centres[s]||[46.2044,6.1432];
+var m=L.circleMarker(c,{radius:Math.sqrt(secteurs[s])*5,fillColor:PALETTE[i],color:'#fff',weight:3,opacity:1,fillOpacity:.6});
+m.bindPopup('<strong>'+s+'</strong><br>'+secteurs[s]+' interventions');
+coucheMarqueurs.addLayer(m);
+});
+coucheMarqueurs.addTo(carteLeaflet);
+}
+}
+
+function majSaison(){
+var d=donneesFiltrees;
+var jours=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+var jourCounts={};jours.forEach(function(j){jourCounts[j]=0});
+d.forEach(function(x){if(jourCounts[x.jour]!==undefined)jourCounts[x.jour]++});
+creerOuMaj('graphJour','bar',{
+labels:jours,
+datasets:[{label:'Interventions',data:jours.map(function(j){return jourCounts[j]}),backgroundColor:jours.map(function(j){return(j==='Samedi'||j==='Dimanche')?'#C41E3A':'#1e40af'}),borderRadius:4}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}}});
+
+var heures=[];for(var i=0;i<24;i++)heures.push(i);
+var hCounts={};heures.forEach(function(h){hCounts[h]=0});
+d.forEach(function(x){hCounts[x.heure]=(hCounts[x.heure]||0)+1});
+creerOuMaj('graphHeure','bar',{
+labels:heures.map(function(h){return h+'h'}),
+datasets:[{label:'Interventions',data:heures.map(function(h){return hCounts[h]}),backgroundColor:heures.map(function(h){return(h>=22||h<6)?'#C41E3A':(h>=6&&h<12)?'#ea580c':(h>=12&&h<18)?'#1e40af':'#7c3aed'}),borderRadius:3}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false},ticks:{font:{size:9}}}}});
+
+var annees=[...new Set(d.map(function(x){return x.annee}))].sort();
+var moisNoms=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+var dsAnnees=annees.map(function(a,idx){
+var moisData=[];
+for(var m=1;m<=12;m++){
+var cleMois=a+'-'+(m<10?'0':'')+m;
+moisData.push(d.filter(function(x){return x.mois===cleMois}).length);
+}
+return{label:a,data:moisData,borderColor:PALETTE[idx%PALETTE.length],backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:PALETTE[idx%PALETTE.length],borderWidth:2};
+});
+creerOuMaj('graphTendance','line',{labels:moisNoms,datasets:dsAnnees},{plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'Interventions'}},x:{grid:{display:false}}}});
+
+var jourIdx={Lundi:0,Mardi:1,Mercredi:2,Jeudi:3,Vendredi:4,Samedi:5,Dimanche:6};
+var matrice=[];
+jours.forEach(function(j){
+var ligne=[];
+for(var h=0;h<24;h++){
+ligne.push(d.filter(function(x){return x.jour===j&&x.heure===h}).length);
+}
+matrice.push(ligne);
+});
+var maxVal=Math.max.apply(null,matrice.flat())||1;
+var matriceDatasets=[];
+jours.forEach(function(j,ji){
+for(var h=0;h<24;h++){
+matriceDatasets.push({x:h,y:ji,v:matrice[ji][h]});
+}
+});
+creerOuMaj('graphMatrice','scatter',{
+datasets:[{label:'Interventions',data:matriceDatasets.map(function(p){return{x:p.x,y:p.y}}),pointRadius:matriceDatasets.map(function(p){return Math.max(3,p.v/maxVal*16)}),pointBackgroundColor:matriceDatasets.map(function(p){var ratio=p.v/maxVal;return ratio>0.6?'#C41E3A':ratio>0.3?'#ea580c':'#1e40af'}),pointBorderColor:'transparent'}]
+},{plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var idx=ctx.dataIndex;return jours[matriceDatasets[idx].y]+' '+matriceDatasets[idx].x+'h : '+matriceDatasets[idx].v+' interventions'}}}},scales:{x:{min:-0.5,max:23.5,ticks:{callback:function(v){return v+'h'},stepSize:1,font:{size:9}},grid:{display:false}},y:{min:-0.5,max:6.5,ticks:{callback:function(v){return jours[v]||''},stepSize:1,font:{size:10}},grid:{color:'rgba(0,0,0,.03)'}}}});
+
+var pathosU=[...new Set(d.map(function(x){return x.patho}))].sort();
+var moisU=[...new Set(d.map(function(x){return x.mois}))].sort();
+var dsPathoMois=pathosU.slice(0,6).map(function(p,i){
+return{label:p,data:moisU.map(function(m){return d.filter(function(x){return x.patho===p&&x.mois===m}).length}),borderColor:PALETTE[i%PALETTE.length],backgroundColor:'transparent',tension:.3,borderWidth:2,pointRadius:3};
+});
+creerOuMaj('graphPathoMois','line',{labels:moisU,datasets:dsPathoMois},{plugins:{legend:{position:'bottom',labels:{font:{size:9}}}},scales:{y:{beginAtZero:true},x:{grid:{display:false},ticks:{font:{size:9}}}}});
+}
+
+function majCharge(){
+var d=donneesFiltrees;
+var groupes=compter(d,'groupe');
+var ambulances=compter(d,'ambulance');
+var groupesU=Object.keys(groupes).sort();
+
+var html='';
+groupesU.forEach(function(g,i){
+var n=groupes[g];
+var duree=d.filter(function(x){return x.groupe===g&&x.dTotal!==null}).reduce(function(a,x){return a+x.dTotal},0);
+html+='<div class="kpi '+['rouge','bleu','vert','orange'][i%4]+'"><div class="kpi-label">'+g+'</div><div class="kpi-valeur">'+n+'</div><div class="kpi-detail">'+Math.round(duree/60)+' h d\'engagement</div></div>';
+});
+document.getElementById('grilleCharge').innerHTML=html;
+
+creerOuMaj('graphChargeGroupe','bar',{
+labels:groupesU,
+datasets:[{label:'Interventions',data:groupesU.map(function(g){return groupes[g]}),backgroundColor:['#C41E3A','#1e40af','#16a34a','#ea580c'],borderRadius:4}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}}});
+
+var ambTries=Object.entries(ambulances).sort(function(a,b){return b[1]-a[1]});
+creerOuMaj('graphChargeAmb','bar',{
+labels:ambTries.map(function(e){return e[0]}),
+datasets:[{label:'Interventions',data:ambTries.map(function(e){return e[1]}),backgroundColor:'#7c3aed',borderRadius:4}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}}});
+
+var dureesGroupe={};
+groupesU.forEach(function(g){
+dureesGroupe[g]=d.filter(function(x){return x.groupe===g&&x.dTotal!==null}).reduce(function(a,x){return a+x.dTotal},0)/60;
+});
+creerOuMaj('graphDureeGroupe','bar',{
+labels:groupesU,
+datasets:[{label:'Heures d\'engagement',data:groupesU.map(function(g){return dureesGroupe[g].toFixed(1)}),backgroundColor:['#C41E3A','#1e40af','#16a34a','#ea580c'],borderRadius:4}]
+},{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Heures'}},x:{grid:{display:false}}}});
+
+var thtml='<thead><tr><th>Groupe</th><th>Ambulances</th><th>Interventions</th><th>Durée totale (h)</th><th>Moy./intervention (min)</th><th>P1</th><th>P2</th><th>P3</th><th>SMUR</th></tr></thead><tbody>';
+groupesU.forEach(function(g){
+var gd=d.filter(function(x){return x.groupe===g});
+var ambs=[...new Set(gd.map(function(x){return x.ambulance}))].join(', ');
+var duree=gd.filter(function(x){return x.dTotal!==null}).reduce(function(a,x){return a+x.dTotal},0);
+var moyInt=gd.length?duree/gd.length:0;
+thtml+='<tr><td><strong>'+g+'</strong></td><td>'+ambs+'</td><td>'+gd.length+'</td><td>'+Math.round(duree/60)+'</td><td>'+moyInt.toFixed(1)+'</td>';
+['P1','P2','P3','SMUR'].forEach(function(t){thtml+='<td>'+gd.filter(function(x){return x.type===t}).length+'</td>'});
+thtml+='</tr>';
+});
+thtml+='</tbody>';
+document.getElementById('tableauCharge').innerHTML=thtml;
+}
+
+function majCertification(){
+var d=donneesFiltrees;
+var nacas={};d.forEach(function(x){var k=x.naca;nacas[k]=(nacas[k]||0)+1});
+var nacaTries=Object.keys(nacas).sort(function(a,b){return parseInt(a)-parseInt(b)});
+var thtml='<thead><tr><th>Catégorie NACA</th><th>Nombre</th><th>%</th></tr></thead><tbody>';
+nacaTries.forEach(function(n){
+thtml+='<tr><td>NACA '+n+'</td><td>'+nacas[n]+'</td><td>'+(d.length?Math.round(nacas[n]/d.length*100):0)+'%</td></tr>';
+});
+thtml+='</tbody>';
+document.getElementById('tableauNaca').innerHTML=thtml;
+
+var types=compter(d,'type');
+thtml='<thead><tr><th>Type de mission</th><th>Nombre</th><th>%</th></tr></thead><tbody>';
+Object.entries(types).sort().forEach(function(e){
+thtml+='<tr><td>'+e[0]+'</td><td>'+e[1]+'</td><td>'+Math.round(e[1]/d.length*100)+'%</td></tr>';
+});
+thtml+='</tbody>';
+document.getElementById('tableauTypeCert').innerHTML=thtml;
+
+var pathos=compter(d,'patho');
+thtml='<thead><tr><th>Pathologie</th><th>Nombre</th><th>%</th></tr></thead><tbody>';
+Object.entries(pathos).sort(function(a,b){return b[1]-a[1]}).forEach(function(e){
+thtml+='<tr><td>'+e[0]+'</td><td>'+e[1]+'</td><td>'+Math.round(e[1]/d.length*100)+'%</td></tr>';
+});
+thtml+='</tbody>';
+document.getElementById('tableauPathoCert').innerHTML=thtml;
+
+var typesU=[...new Set(d.map(function(x){return x.type}))].sort();
+thtml='<thead><tr><th>Indicateur</th>';
+typesU.forEach(function(t){thtml+='<th>'+t+'</th>'});
+thtml+='<th>Global</th></tr></thead><tbody>';
+var indicateurs=[
+{nom:'Délai alerte → départ (médiane)',fn:function(x){return x.dAlerte_Depart}},
+{nom:'Délai départ → site (médiane)',fn:function(x){return x.dDepart_Site}},
+{nom:'Temps sur scène (médiane)',fn:function(x){return x.dSurScene}},
+{nom:'Délai transport (médiane)',fn:function(x){return x.dTransport}},
+{nom:'Délai total (médiane)',fn:function(x){return x.dTotal}}
+];
+indicateurs.forEach(function(ind){
+thtml+='<tr><td><strong>'+ind.nom+'</strong></td>';
+typesU.forEach(function(t){
+var vals=d.filter(function(x){return x.type===t}).map(ind.fn);
+thtml+='<td>'+mediane(vals).toFixed(1)+' min</td>';
+});
+var valsGlobal=d.map(ind.fn);
+thtml+='<td><strong>'+mediane(valsGlobal).toFixed(1)+' min</strong></td></tr>';
+});
+thtml+='</tbody>';
+document.getElementById('tableauDelaisCert').innerHTML=thtml;
+}
+
+function exporterCSV(type){
+var d=donneesFiltrees,csv='',lignes=[];
+if(type==='naca'){
+csv='Catégorie NACA;Nombre;Pourcentage\n';
+var nacas={};d.forEach(function(x){nacas[x.naca]=(nacas[x.naca]||0)+1});
+Object.keys(nacas).sort().forEach(function(n){csv+='NACA '+n+';'+nacas[n]+';'+Math.round(nacas[n]/d.length*100)+'%\n'});
+}else if(type==='type'){
+csv='Type de mission;Nombre;Pourcentage\n';
+var types=compter(d,'type');
+Object.entries(types).sort().forEach(function(e){csv+=e[0]+';'+e[1]+';'+Math.round(e[1]/d.length*100)+'%\n'});
+}else if(type==='patho'){
+csv='Pathologie;Nombre;Pourcentage\n';
+var pathos=compter(d,'patho');
+Object.entries(pathos).sort(function(a,b){return b[1]-a[1]}).forEach(function(e){csv+=e[0]+';'+e[1]+';'+Math.round(e[1]/d.length*100)+'%\n'});
+}else if(type==='delais'){
+csv='Indicateur;P1;P2;P3;SMUR;Global\n';
+var typesU=['P1','P2','P3','SMUR'];
+var inds=[
+{nom:'Délai alerte-départ',fn:function(x){return x.dAlerte_Depart}},
+{nom:'Délai départ-site',fn:function(x){return x.dDepart_Site}},
+{nom:'Temps sur scène',fn:function(x){return x.dSurScene}},
+{nom:'Délai transport',fn:function(x){return x.dTransport}},
+{nom:'Délai total',fn:function(x){return x.dTotal}}
+];
+inds.forEach(function(ind){
+csv+=ind.nom;
+typesU.forEach(function(t){csv+=';'+mediane(d.filter(function(x){return x.type===t}).map(ind.fn)).toFixed(1)});
+csv+=';'+mediane(d.map(ind.fn)).toFixed(1)+'\n';
+});
+}else if(type==='complet'){
+csv='ID;Date;Jour;Heure;Type;Pathologie;Secteur;Groupe;Ambulance;NACA;Age;Sexe;Statut;Destination;Alerte-Depart;Depart-Site;Sur scene;Transport;Total\n';
+d.forEach(function(x){
+csv+=x.id+';'+x.date+';'+x.jour+';'+x.hAlerte+';'+x.type+';'+x.patho+';'+x.secteur+';'+x.groupe+';'+x.ambulance+';'+x.naca+';'+x.age+';'+x.sexe+';'+x.statut+';'+x.destination+';'+(x.dAlerte_Depart||'')+';'+(x.dDepart_Site||'')+';'+(x.dSurScene||'')+';'+(x.dTransport||'')+';'+(x.dTotal||'')+'\n';
+});
+}
+var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='export_'+type+'_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+window.addEventListener('load',function(){
+fetch('Extraction_Attrib.xlsx').then(function(r){
+if(!r.ok)throw new Error('Fichier non trouvé');
+return r.arrayBuffer();
+}).then(function(buf){
+var wb=XLSX.read(buf,{type:'array'});
+chargerDonnees(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+}).catch(function(){
+document.getElementById('zoneChargement').innerHTML='<div style="font-size:4rem">📂</div><p><strong>Extraction_Attrib.xlsx</strong> non trouvé</p><p style="font-size:.7rem;color:#6b7280">Placez le fichier dans le même dossier que ce dashboard, ou chargez-le via la barre latérale.<br><br>Rappel : lancer <code>python -m http.server 8000</code> dans le dossier</p>';
+});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Évaluation d'impact — Formations Tiers</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root { --rouge:#C41E3A; --bleu:#1e40af; --vert:#166534; --orange:#c2410c; --violet:#7c3aed; --noir:#1a1a1a; --gris:#6b7280; --fond:#f8f7f4; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--fond); color:var(--noir); padding:32px; }
+.page { max-width:1000px; margin:0 auto; }
+h1 { font-family:'Playfair Display',serif; font-size:1.7rem; color:var(--rouge); text-align:center; margin-bottom:6px; }
+.sous-titre { text-align:center; color:var(--gris); font-size:0.85rem; margin-bottom:36px; }
+.modele-kirkpatrick {
+display:grid;
+grid-template-columns:1fr;
+gap:0;
+position:relative;
+}
+.niveau {
+display:grid;
+grid-template-columns:80px 1fr 1fr;
+gap:16px;
+align-items:stretch;
+margin-bottom:20px;
+}
+.niveau-badge {
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+padding:12px;
+border-radius:12px;
+color:white;
+text-align:center;
+}
+.niveau-badge .num { font-size:1.8rem; font-weight:700; line-height:1; }
+.niveau-badge .lab { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+.n1 { background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+.n2 { background:linear-gradient(135deg,#8b5cf6,#6d28d9); }
+.n3 { background:linear-gradient(135deg,#f59e0b,#d97706); }
+.n4 { background:linear-gradient(135deg,#10b981,#059669); }
+.niveau-desc {
+background:white;
+border-radius:12px;
+padding:18px 22px;
+box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.niveau-desc h3 { font-size:0.95rem; margin-bottom:8px; }
+.niveau-desc p { font-size:0.82rem; color:var(--gris); line-height:1.5; }
+.niveau-methode {
+background:white;
+border-radius:12px;
+padding:18px 22px;
+box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.niveau-methode h4 { font-size:0.8rem; color:var(--gris); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.methode-item {
+font-size:0.82rem;
+padding:6px 0;
+border-bottom:1px solid #f3f3f3;
+line-height:1.4;
+}
+.methode-item:last-child { border-bottom:none; }
+.methode-item strong { color:var(--noir); }
+.fleche-descente {
+text-align:center;
+margin:4px 0 4px 80px;
+color:var(--gris);
+font-size:1.2rem;
+opacity:0.4;
+}
+.timeline {
+margin-top:36px;
+background:white;
+border-radius:12px;
+padding:24px 28px;
+box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.timeline h3 { font-size:0.95rem; margin-bottom:20px; text-align:center; color:var(--rouge); }
+.timeline-barre {
+position:relative;
+height:80px;
+margin:0 20px;
+}
+.timeline-ligne {
+position:absolute;
+top:20px;
+left:0;
+right:0;
+height:3px;
+background:#e5e7eb;
+border-radius:2px;
+}
+.timeline-point {
+position:absolute;
+top:8px;
+transform:translateX(-50%);
+text-align:center;
+}
+.timeline-point .cercle {
+width:24px;
+height:24px;
+border-radius:50%;
+margin:0 auto 6px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:0.7rem;
+color:white;
+font-weight:700;
+}
+.timeline-point .texte { font-size:0.7rem; color:var(--gris); white-space:nowrap; }
+.exemple-concret {
+margin-top:24px;
+background:white;
+border-radius:12px;
+padding:24px 28px;
+box-shadow:0 2px 10px rgba(0,0,0,0.05);
+border-left:4px solid var(--rouge);
+}
+.exemple-concret h3 { font-size:0.9rem; color:var(--rouge); margin-bottom:12px; }
+.exemple-concret p { font-size:0.82rem; color:var(--gris); line-height:1.6; margin-bottom:8px; }
+.exemple-concret p:last-child { margin-bottom:0; }
+.exemple-concret strong { color:var(--noir); }
+@media print { body { padding:12px; } }
+</style>
+</head>
+<body>
+<div class="page">
+<h1>Évaluation d'impact — Formations Tiers</h1>
+<div class="sous-titre">Modèle de Kirkpatrick adapté aux formations préhospitalières pour tiers (police, pompiers, prison)</div>
+
+<div class="modele-kirkpatrick">
+<div class="niveau">
+<div class="niveau-badge n1"><div class="num">1</div><div class="lab">Réaction</div></div>
+<div class="niveau-desc">
+<h3>Satisfaction des participants</h3>
+<p>Mesure immédiate de la satisfaction à la fin de la formation. Les participants ont-ils trouvé la formation utile, pertinente et bien organisée ? C'est le niveau le plus simple à évaluer mais le moins prédictif de l'impact réel.</p>
+</div>
+<div class="niveau-methode">
+<h4>Méthodes de mesure</h4>
+<div class="methode-item"><strong>Questionnaire de satisfaction</strong> — 5-10 questions à chaud (échelle 1-5) : pertinence, clarté, utilité perçue, qualité de l'animateur</div>
+<div class="methode-item"><strong>NPS (Net Promoter Score)</strong> — « Recommanderiez-vous cette formation à un collègue ? » Score 0-10</div>
+<div class="methode-item"><strong>Commentaires libres</strong> — Recueil qualitatif des points forts et axes d'amélioration</div>
+</div>
+</div>
+
+<div class="fleche-descente">▼</div>
+
+<div class="niveau">
+<div class="niveau-badge n2"><div class="num">2</div><div class="lab">Apprentissage</div></div>
+<div class="niveau-desc">
+<h3>Acquisition des compétences</h3>
+<p>Les participants ont-ils réellement appris ce qui était enseigné ? Mesure des connaissances et gestes techniques acquis. Évaluation avant/après pour objectiver la progression.</p>
+</div>
+<div class="niveau-methode">
+<h4>Méthodes de mesure</h4>
+<div class="methode-item"><strong>Pré-test / Post-test</strong> — Quiz identique avant et après la formation. Mesure du gain d'apprentissage objectif</div>
+<div class="methode-item"><strong>Évaluation pratique</strong> — Mise en situation avec grille d'observation (ex. : qualité du BLS sur mannequin, temps de réaction)</div>
+<div class="methode-item"><strong>Taux de réussite</strong> — Pourcentage de participants atteignant le seuil de compétence requis</div>
+</div>
+</div>
+
+<div class="fleche-descente">▼</div>
+
+<div class="niveau">
+<div class="niveau-badge n3"><div class="num">3</div><div class="lab">Comportement</div></div>
+<div class="niveau-desc">
+<h3>Transfert sur le terrain</h3>
+<p>Les compétences acquises sont-elles utilisées en situation réelle ? C'est le niveau le plus difficile à mesurer mais le plus pertinent. Nécessite un suivi à 3-6 mois post-formation.</p>
+</div>
+<div class="niveau-methode">
+<h4>Méthodes de mesure</h4>
+<div class="methode-item"><strong>Questionnaire à 6 mois</strong> — « Avez-vous utilisé les compétences BLS depuis la formation ? Dans quelle situation ? »</div>
+<div class="methode-item"><strong>Entretien avec les cadres</strong> — Les responsables des tiers observent-ils un changement de pratique chez leurs équipes ?</div>
+<div class="methode-item"><strong>Auto-évaluation de confiance</strong> — « Sur une échelle de 1-10, à quel point vous sentez-vous capable de réaliser un BLS ? » (avant vs 6 mois après)</div>
+</div>
+</div>
+
+<div class="fleche-descente">▼</div>
+
+<div class="niveau">
+<div class="niveau-badge n4"><div class="num">4</div><div class="lab">Résultats</div></div>
+<div class="niveau-desc">
+<h3>Impact organisationnel</h3>
+<p>La formation a-t-elle eu un impact mesurable sur les résultats globaux ? Pour les tiers, cela se traduit par la qualité des premiers gestes avant l'arrivée des ambulanciers et le délai de prise en charge.</p>
+</div>
+<div class="niveau-methode">
+<h4>Méthodes de mesure</h4>
+<div class="methode-item"><strong>Qualité des gestes à l'arrivée</strong> — Lors des interventions conjointes, les ambulanciers évaluent la qualité du BLS initié par la police/pompiers</div>
+<div class="methode-item"><strong>Taux de survie (ACR)</strong> — Corrélation entre les formations BLS dispensées aux tiers et le taux de ROSC sur les ACR avec premiers secours par les tiers</div>
+<div class="methode-item"><strong>Retour d'expérience conjoint</strong> — Débriefings communs ambulanciers/tiers après les interventions critiques</div>
+</div>
+</div>
+</div>
+
+<div class="timeline">
+<h3>Chronologie de l'évaluation</h3>
+<div class="timeline-barre">
+<div class="timeline-ligne"></div>
+<div class="timeline-point" style="left:5%;">
+<div class="cercle" style="background:#3b82f6;">J</div>
+<div class="texte">Jour J<br><strong style="color:#3b82f6;">Niv. 1 + 2</strong></div>
+</div>
+<div class="timeline-point" style="left:25%;">
+<div class="cercle" style="background:#8b5cf6;">1M</div>
+<div class="texte">1 mois<br><strong style="color:#8b5cf6;">Rappel quiz</strong></div>
+</div>
+<div class="timeline-point" style="left:50%;">
+<div class="cercle" style="background:#f59e0b;">3M</div>
+<div class="texte">3 mois<br><strong style="color:#f59e0b;">1ère éval. terrain</strong></div>
+</div>
+<div class="timeline-point" style="left:75%;">
+<div class="cercle" style="background:#10b981;">6M</div>
+<div class="texte">6 mois<br><strong style="color:#10b981;">Niv. 3 + 4</strong></div>
+</div>
+<div class="timeline-point" style="left:95%;">
+<div class="cercle" style="background:var(--rouge);">12</div>
+<div class="texte">12 mois<br><strong style="color:var(--rouge);">Recyclage</strong></div>
+</div>
+</div>
+</div>
+
+<div class="exemple-concret">
+<h3>Exemple concret : Formation BLS pour la police cantonale</h3>
+<p><strong>Niveau 1 :</strong> 24 policiers formés. Satisfaction moyenne : 4.6/5. Points forts : mise en pratique sur mannequin. Point faible : durée jugée trop courte par 30% des participants.</p>
+<p><strong>Niveau 2 :</strong> Pré-test moyen : 45%. Post-test moyen : 82%. 100% des participants réussissent la mise en situation pratique (BLS 2 min avec défibrillateur).</p>
+<p><strong>Niveau 3 (à 6 mois) :</strong> 5 policiers sur 24 ont été confrontés à une situation nécessitant le BLS. 4/5 ont initié les gestes correctement avant l'arrivée des ambulanciers. Confiance auto-évaluée : 7.2/10 (vs 3.8/10 avant formation).</p>
+<p><strong>Niveau 4 :</strong> Sur les 5 interventions avec BLS par des policiers formés, 2 ROSC obtenus (40%). Retour des ambulanciers : qualité des compressions nettement supérieure à la moyenne des « bystanders ».</p>
+<p><strong>Décision :</strong> Formation efficace → recyclage annuel maintenu. Durée à augmenter de 30 min sur la partie pratique. Ajouter un module « utilisation du DEA » renforcé.</p>
+</div>
+</div>
+</body>
+</html>

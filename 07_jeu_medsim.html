@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedSim — Simulation préhospitalière</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--rouge:#C41E3A;--vert:#16a34a;--orange:#ea580c;--bleu:#2563eb;--noir:#080a10;--carte:#11131b;--carte2:#181b25;--bord:#252838;--bord2:#333750;--texte:#d1d5e0;--texte-c:#f0f2f7;--gris:#5a6070;--gris-c:#8890a4;--mfond:#060b04;--mbord:#1a2518;--ecg:#00e676;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--texte);height:100vh;overflow:hidden;}
+
+.ecran{display:none;}.ecran.actif{display:flex;}
+.ecran-accueil{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 16px;background:radial-gradient(ellipse at 50% 30%,#1a1020,var(--noir) 70%);overflow-y:auto;}
+.ecran-accueil h1{font-size:2.4rem;color:white;font-weight:700;margin:10px 0 6px;}
+.ecran-accueil .sous{color:var(--gris-c);font-size:1rem;margin-bottom:28px;max-width:500px;line-height:1.6;}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;max-width:860px;width:100%;margin-bottom:20px;}
+.sc{background:var(--carte);border:1px solid var(--bord);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all 0.2s;text-align:left;}
+.sc:hover{border-color:var(--rouge);transform:translateY(-2px);background:var(--carte2);}
+.sc .sn{font-size:0.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.sc .st{font-size:0.95rem;font-weight:600;color:var(--texte-c);}
+.sc .sd{font-size:0.8rem;color:var(--gris-c);margin-top:4px;}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.btn:hover{transform:translateY(-1px);}
+.btn-bleu{background:var(--bleu);color:white;}
+.btn-fantome{background:transparent;border:1px solid var(--bord2);color:var(--texte);}
+.btn-sm{padding:6px 12px;font-size:0.8rem;border-radius:6px;}
+
+.ej{flex-direction:column;height:100vh;overflow:hidden;}
+
+.bandeau{display:grid;grid-template-columns:1fr 1fr;flex-shrink:0;border-bottom:1px solid var(--bord);height:195px;overflow:hidden;}
+.bd-ecg{background:var(--mfond);position:relative;overflow:hidden;border-right:1px solid var(--mbord);}
+.bd-ecg canvas{width:100%;height:100%;display:block;}
+.bd-ecg .el{position:absolute;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:600;opacity:0.6;}
+.bd-ecg .el1{top:4px;left:8px;color:var(--ecg);}.bd-ecg .el2{top:44%;left:8px;color:#42a5f5;}.bd-ecg .el3{top:80%;left:8px;color:#fdd835;}
+.bd-ecg.off{display:flex;align-items:center;justify-content:center;color:var(--gris);font-size:0.85rem;}
+
+.bd-droite{background:var(--carte);display:grid;grid-template-columns:1fr 1fr;overflow:hidden;}
+.bd-pv{display:flex;flex-direction:column;justify-content:center;padding:8px 14px;gap:3px;border-right:1px solid var(--bord);}
+.pvr{display:flex;align-items:baseline;padding:2px 0;}
+.pvr .pl{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--gris);text-transform:uppercase;width:36px;flex-shrink:0;}
+.pvr .pval{font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:700;transition:opacity 0.3s;flex:1;text-align:center;}
+.pvr .pu{font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:var(--gris);width:36px;flex-shrink:0;text-align:right;}
+.pv-flash{animation:pvf 0.5s ease;}
+@keyframes pvf{0%{opacity:0.3;}100%{opacity:1;}}
+.cv{color:var(--ecg);}.cb{color:#42a5f5;}.cj{color:#fdd835;}.cr{color:#f44336;}.cbl{color:#ccc;}.co{color:var(--orange);}
+
+.bd-etat{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;gap:4px;}
+.info-sc{font-size:0.75rem;color:var(--gris-c);text-align:center;}.info-sc strong{color:white;}
+.chr{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--orange);}
+.jauge-bloc{width:100%;max-width:160px;}
+.jvb{width:100%;height:10px;background:#1a1d28;border-radius:5px;overflow:hidden;}
+.jvr{height:100%;border-radius:5px;transition:width 0.5s,background 0.3s;}
+.jvv{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.85rem;text-align:center;margin-top:2px;}
+
+.zone-trois{display:grid;grid-template-columns:2fr 1fr 1fr;flex:1;min-height:0;overflow:hidden;gap:1px;background:var(--bord);}
+.col{background:var(--carte);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.col-titre{padding:6px 10px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--bord);flex-shrink:0;display:flex;align-items:center;gap:5px;}
+.col-corps{flex:1;overflow-y:auto;padding:6px;min-height:0;}
+.col-corps::-webkit-scrollbar{width:4px;}.col-corps::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+
+.sil-ligne{display:flex;gap:10px;align-items:flex-start;margin-bottom:6px;}
+.sil-ligne svg{height:70px;flex-shrink:0;}
+.ib{flex:1;padding:6px 8px;background:rgba(196,30,58,0.1);border:1px solid rgba(196,30,58,0.25);border-radius:7px;font-size:0.82rem;color:#e8c0c8;line-height:1.4;}
+.ib strong{color:#fca5a5;display:block;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px;}
+.ib .ra{margin-top:4px;padding-top:3px;border-top:1px solid rgba(196,30,58,0.15);color:#d4a0a8;animation:ap 0.2s ease;font-size:0.8rem;}
+.ib .ra b{color:#f0b0b8;font-weight:600;}
+@keyframes ap{from{opacity:0;transform:translateY(-3px);}to{opacity:1;transform:translateY(0);}}
+
+.qi{display:flex;align-items:flex-start;gap:6px;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:0.85rem;color:var(--gris-c);transition:all 0.12s;border:1px solid transparent;margin-bottom:2px;}
+.qi:hover{background:rgba(255,255,255,0.03);border-color:var(--bord2);}
+.qi.fait{opacity:0.3;pointer-events:none;}
+.qi .qic{font-size:0.9rem;flex-shrink:0;}
+
+.grille-btns{display:flex;flex-wrap:wrap;gap:5px;}
+.abtn{display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:7px;cursor:pointer;font-size:0.8rem;font-family:inherit;font-weight:500;color:var(--texte-c);background:var(--carte2);border:1px solid var(--bord);transition:all 0.12s;line-height:1.2;}
+.abtn:hover{border-color:var(--bord2);background:rgba(255,255,255,0.06);}
+.abtn.ok{background:rgba(22,163,106,0.15);border-color:rgba(22,163,106,0.35);color:#4ade80;pointer-events:none;opacity:0.5;}
+.abtn.ko{background:rgba(196,30,58,0.15);border-color:rgba(196,30,58,0.35);color:#f87171;pointer-events:none;opacity:0.5;}
+.abtn .ic{font-size:0.9rem;}
+
+.barre-transport{flex-shrink:0;padding:8px 16px;background:var(--carte);border-top:1px solid var(--bord);display:flex;align-items:center;justify-content:center;}
+.btn-transport{padding:10px 40px;border:none;border-radius:8px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;background:var(--rouge);color:white;transition:all 0.15s;text-transform:uppercase;letter-spacing:1px;}
+.btn-transport:hover{background:#a01830;transform:scale(1.03);}
+
+.modal-ov{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(8,10,16,0.92);z-index:150;align-items:center;justify-content:center;padding:16px;}
+.modal-ov.actif{display:flex;}
+.modal-box{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:20px 24px;max-width:620px;width:100%;max-height:90vh;overflow-y:auto;}
+.modal-box::-webkit-scrollbar{width:4px;}.modal-box::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+.modal-box h2{font-size:1.1rem;color:white;margin-bottom:14px;text-align:center;}
+.dg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px;}
+.dbtn{padding:9px 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);border-radius:7px;color:#c4b5fd;font-size:0.85rem;font-family:inherit;cursor:pointer;transition:all 0.12s;}
+.dbtn:hover{background:rgba(124,58,237,0.25);}
+.dbtn.c-ok{background:rgba(22,163,106,0.15);border-color:var(--vert);color:#4ade80;pointer-events:none;}
+.dbtn.c-ko{background:rgba(196,30,58,0.15);border-color:var(--rouge);color:#f87171;pointer-events:none;}
+.dbtn.br{border-color:var(--vert);color:#4ade80;opacity:0.7;pointer-events:none;}
+.dbtn:disabled{pointer-events:none;opacity:0.4;}
+.dest-sec{display:none;}.dest-sec.actif{display:block;}
+.di{display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:4px;border-radius:7px;cursor:pointer;border:1px solid var(--bord);transition:all 0.1s;font-size:0.85rem;}
+.di:hover{border-color:var(--bord2);background:rgba(255,255,255,0.03);}
+.di.c-ok{border-color:var(--vert);background:rgba(22,163,106,0.1);pointer-events:none;}
+.di.c-ko{border-color:var(--rouge);background:rgba(196,30,58,0.1);pointer-events:none;}
+.di.br{border-color:var(--vert);opacity:0.7;pointer-events:none;}
+.di .dic{font-size:1.1rem;}.di .dn{font-weight:600;color:var(--texte-c);}.di .dd{font-size:0.65rem;color:var(--gris);}
+.rfb{margin-top:8px;padding:8px 10px;border-radius:7px;font-size:0.82rem;line-height:1.5;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);color:#93c5fd;}
+.rs{margin-bottom:10px;}.rs h4{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.4px;color:var(--gris-c);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--bord);}
+.rl{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:0.8rem;border-radius:4px;margin-bottom:2px;}
+.rl.rok{background:rgba(22,163,106,0.08);color:#4ade80;}.rl.rko{background:rgba(196,30,58,0.08);color:#f87171;}.rl.rn{background:rgba(255,255,255,0.02);color:var(--gris-c);}
+.rsc{text-align:center;margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;}
+.rsc .val{font-size:1.6rem;font-weight:700;}.rsc .lab{font-size:0.72rem;color:var(--gris);margin-top:3px;}
+.rbtns{display:flex;justify-content:center;gap:12px;margin-top:14px;}
+.notif{position:fixed;top:8px;left:50%;transform:translateX(-50%);padding:7px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;z-index:200;animation:nIn 0.2s ease,nOut 0.2s ease 2s forwards;pointer-events:none;}
+.n-ok{background:rgba(22,163,106,0.95);color:white;}.n-ko{background:rgba(196,30,58,0.95);color:white;}.n-info{background:rgba(37,99,235,0.95);color:white;}
+@keyframes nIn{from{opacity:0;transform:translateX(-50%) translateY(-10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+@keyframes nOut{from{opacity:1;}to{opacity:0;}}
+
+.e12o{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.93);z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:10px;}
+.e12o.actif{display:flex;}
+.e12b{background:var(--mfond);border:2px solid var(--mbord);border-radius:10px;width:100%;max-width:960px;overflow:hidden;}
+.e12h{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid var(--mbord);}
+.e12h span{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gris);}
+.e12g{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);}
+.e12c{border-right:1px solid var(--mbord);border-bottom:1px solid var(--mbord);position:relative;height:80px;}
+.e12c:nth-child(4n){border-right:none;}.e12c:nth-child(n+9){border-bottom:none;}
+.e12c canvas{width:100%;height:100%;display:block;}
+.e12c .dl{position:absolute;top:3px;left:5px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;color:var(--ecg);opacity:0.8;}
+
+@media(max-width:900px){
+.bandeau{grid-template-columns:1fr;height:auto;}
+.bd-ecg{height:90px;}
+.bd-droite{grid-template-columns:1fr;height:auto;}
+.bd-pv{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 10px;padding:8px 12px;border-right:none;border-bottom:1px solid var(--bord);}
+.pvr{flex-direction:column;align-items:center;padding:2px 0;}
+.pvr .pl{min-width:unset;text-align:center;font-size:0.6rem;}
+.pvr .pval{font-size:1.1rem;text-align:center;}
+.pvr .pu{min-width:unset;text-align:center;}
+.bd-etat{flex-direction:row;justify-content:space-around;padding:6px 10px;gap:10px;}
+.jauge-bloc{max-width:120px;}
+.zone-trois{grid-template-columns:1fr;grid-template-rows:auto;overflow-y:auto;}
+.col{overflow:visible;}
+.col-titre{cursor:pointer;user-select:none;}
+.col-titre::after{content:'▼';margin-left:auto;font-size:0.55rem;color:var(--gris);transition:transform 0.2s;}
+.col.ferme .col-titre::after{content:'▶';}
+.col.ferme .col-corps{display:none;}
+.e12g{grid-template-columns:repeat(2,1fr);}.e12c{height:56px;}
+.sg{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="ecran ecran-accueil actif" id="ecranAccueil">
+<div style="font-size:3rem;filter:drop-shadow(0 0 20px rgba(196,30,58,0.4));">🚑</div>
+<h1>MedSim</h1>
+<p class="sous">Simulation de décision préhospitalière. Interrogez, examinez, traitez, diagnostiquez et orientez votre patient.</p>
+<div class="sg" id="scG"></div>
+</div>
+
+<div class="ecran ej" id="ecranJeu">
+<div class="bandeau">
+<div class="bd-ecg off" id="ecgBande">📟 Monitoring non branché</div>
+<div class="bd-droite">
+<div class="bd-pv" id="pvZone"><div style="color:var(--gris);font-size:0.8rem;text-align:center;padding:20px;">Paramètres vitaux<br>—</div></div>
+<div class="bd-etat">
+<div class="info-sc">Scénario <strong id="numSc">1</strong>/<strong id="totSc">7</strong></div>
+<div class="chr" id="chrono">03:00</div>
+<div class="jauge-bloc"><div class="jvb"><div class="jvr" id="vieJ" style="width:100%;background:var(--vert);"></div></div><div class="jvv" id="vieTxt" style="color:var(--vert);">❤️ 100%</div></div>
+</div>
+</div>
+</div>
+<div class="zone-trois">
+<div class="col" id="colPatient">
+<div class="col-titre" style="color:var(--bleu);" onclick="toggleCol('colPatient')">🧑 Patient & Anamnèse</div>
+<div class="col-corps">
+<div class="sil-ligne"><div id="silZ"></div><div class="ib" id="infoBox"><strong>Situation</strong><span id="infoCont"></span></div></div>
+<div id="zAnam"></div>
+</div>
+</div>
+<div class="col" id="colExamens">
+<div class="col-titre" style="color:var(--ecg);" onclick="toggleCol('colExamens')">🔍 Examens</div>
+<div class="col-corps"><div class="grille-btns" id="gExam"></div></div>
+</div>
+<div class="col" id="colTraitements">
+<div class="col-titre" style="color:var(--orange);" onclick="toggleCol('colTraitements')">💊 Traitements</div>
+<div class="col-corps"><div class="grille-btns" id="gTrait"></div></div>
+</div>
+</div>
+<div class="barre-transport"><button class="btn-transport" onclick="transport()">🚑 TRANSPORT</button></div>
+</div>
+
+<div class="modal-ov" id="modalTransport"><div class="modal-box" id="modalBox"></div></div>
+<div class="modal-ov" id="modalRecap"><div class="modal-box" id="recapBox"></div></div>
+<div class="e12o" id="e12Ov"><div class="e12b"><div class="e12h"><span>25mm/s — 10mm/mV</span><span id="e12H"></span></div><div class="e12g" id="e12G"></div><div style="padding:6px;text-align:center;border-top:1px solid var(--mbord);"><button class="btn btn-fantome btn-sm" onclick="fermer12()">✕ Fermer</button></div></div></div>
+
+<script>
+const DER=['I','II','III','aVR','aVL','aVF','V1','V2','V3','V4','V5','V6'];
+const SC=[
+{titre:"Douleur thoracique — H 58 ans",svg:"h",ind:[],plainte:"Douleur thoracique constrictive irradiant bras G",situation:"Homme de 58 ans assis, pâle, en sueur. Se tient la poitrine. Épouse présente.",anam:[{q:"Depuis quand la douleur ?",r:"Il y a 30 minutes, d'un coup."},{q:"Où exactement ?",r:"Derrière le sternum, ça serre. Bras gauche."},{q:"Antécédents ?",r:"HTA 10 ans, diabète type 2, fumeur 1p/j."},{q:"Traitements habituels ?",r:"Metformine, amlodipine, aspirine cardio."},{q:"Déjà eu ce type de douleur ?",r:"Jamais aussi fort. Parfois à l'effort."},{q:"Pris quelque chose ?",r:"Non."},{q:"Allergies ?",r:"Aucune."},{q:"Dernier repas ?",r:"Il y a 2 heures."}],pv:{fc:98,spo2:96,tas:155,tad:92,fr:20,temp:36.4,glyc:9.8},ecgType:"stemi",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"ecg12",nom:"ECG 12 dérivations",ic:"📈",ok:true,act:"ecg12"},{id:"glyc",nom:"Glycémie capillaire",ic:"🩸",ok:true,res:"Glycémie : 9.8 mmol/L"},{id:"ausc",nom:"Auscultation pulmonaire",ic:"🫁",ok:true,res:"MV symétrique, pas de crépitants"},{id:"temp",nom:"Température",ic:"🌡",ok:false,res:"36.4 °C"},{id:"neuro",nom:"Examen neurologique",ic:"🧠",ok:false,res:"Glasgow 15"}],
+traitements:[{id:"aspirine",nom:"Aspirine 250mg PO",ic:"💊",ok:true,fb:"Antiagrégation initiée."},{id:"nitro",nom:"Nitroglycérine 0.4mg SL",ic:"💊",ok:true,fb:"Vasodilatation coronarienne."},{id:"nacl",nom:"NaCl 0.9% — VVP",ic:"🧪",ok:true,fb:"Accès IV sécurisé."},{id:"fenta",nom:"Fentanyl 50mcg IV",ic:"💉",ok:false,fb:"Opioïde non recommandé en phase aiguë STEMI."},{id:"keta",nom:"Kétamine 10mg IV",ic:"💉",ok:false,fb:"Pas d'indication antalgique ici."},{id:"adr",nom:"Adrénaline 1mg IV",ic:"💉",ok:false,fb:"Patient avec pouls."},{id:"o2",nom:"O2 15L MHC",ic:"😮‍💨",ok:false,fb:"SpO2 96% > seuil 94%."}],
+diagnostics:[{nom:"STEMI (infarctus ST+)",ok:true},{nom:"SCA sans sus-décalage",ok:false},{nom:"Embolie pulmonaire",ok:false},{nom:"Dissection aortique",ok:false},{nom:"Péricardite aiguë",ok:false},{nom:"Douleur musculosquelettique",ok:false}],
+destinations:[{nom:"HUG — Cathétérisme",ic:"🏥",desc:"PCI primaire 24/7",ok:true},{nom:"HUG — Urgences",ic:"🏥",desc:"Urgences générales",ok:false},{nom:"Clinique privée",ic:"🏨",desc:"Pas de salle de cathétérisme",ok:false},{nom:"Permanence médicale",ic:"🩺",desc:"Ambulatoire",ok:false}],
+fbDiag:{ok:"STEMI : sus-décalage ST V1-V4, clinique typique, FDRCV multiples.",ko:"Sus-décalage ST systématisé en V1-V4 → STEMI à orienter en salle de cathétérisme."},fbDest:{ok:"STEMI → PCI primaire dans les 90 minutes.",ko:"Le STEMI nécessite une coronarographie en urgence."},tMax:180,pVie:0.08},
+{titre:"Troubles neurologiques — F 72 ans",svg:"f",ind:[],plainte:"Troubles parole + faiblesse droite, brutal",situation:"Femme 72 ans, mots confus, bras droit pendant. Mari présent.",anam:[{q:"Pouvez-vous dire votre nom ?",r:"[Aphasie d'expression]"},{q:"Quand les symptômes ?",r:"Mari : « À 8h15, elle a lâché sa tasse. »"},{q:"Antécédents ?",r:"Mari : « HTA, fibrillation auriculaire. Xarelto + amlodipine. »"},{q:"Perte de connaissance ?",r:"Mari : « Non. »"},{q:"Allergies ?",r:"Mari : « Aucune. »"},{q:"Dernier repas ?",r:"Mari : « Début petit-déjeuner. »"},{q:"Vomissements, convulsions ?",r:"Mari : « Non. »"},{q:"Médicaments ce matin ?",r:"Mari : « Xarelto pris hier soir. »"}],pv:{fc:88,spo2:97,tas:182,tad:98,fr:18,temp:36.6,glyc:6.2},ecgType:"fa",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"glyc",nom:"Glycémie capillaire",ic:"🩸",ok:true,res:"6.2 mmol/L"},{id:"cinc",nom:"Score Cincinnati / FAST",ic:"🧠",ok:true,res:"Cincinnati 3/3 positif"},{id:"neuro",nom:"Glasgow + motricité",ic:"🧠",ok:true,res:"GCS 13, hémiparésie droite"},{id:"ecg12",nom:"ECG 12 dérivations",ic:"📈",ok:true,act:"ecg12"},{id:"temp",nom:"Température",ic:"🌡",ok:false,res:"36.6 °C"}],
+traitements:[{id:"nacl",nom:"NaCl 0.9% — VVP",ic:"🧪",ok:true,fb:"Accès veineux."},{id:"aspirine",nom:"Aspirine 250mg PO",ic:"💊",ok:false,fb:"CI — AVC hémorragique non exclu."},{id:"antihta",nom:"Aténolol 5mg IV",ic:"💉",ok:false,fb:"TA < 220/120 mmHg."},{id:"fenta",nom:"Fentanyl 50mcg IV",ic:"💉",ok:false,fb:"Pas d'indication antalgique."},{id:"keta",nom:"Kétamine 10mg IV",ic:"💉",ok:false,fb:"Pas d'indication."},{id:"o2",nom:"O2 4L lunettes",ic:"😮‍💨",ok:false,fb:"SpO2 97%."},{id:"glucose",nom:"Glucose 30% IV",ic:"💉",ok:false,fb:"Normoglycémie."}],
+diagnostics:[{nom:"AVC ischémique",ok:true},{nom:"AVC hémorragique",ok:false},{nom:"AIT",ok:false},{nom:"Hypoglycémie",ok:false},{nom:"Crise épileptique",ok:false},{nom:"Migraine avec aura",ok:false}],
+destinations:[{nom:"HUG — Stroke Center",ic:"🏥",desc:"IRM et thrombolyse 24/7",ok:true},{nom:"HUG — Urgences",ic:"🏥",desc:"Urgences générales",ok:false},{nom:"Clinique privée",ic:"🏨",desc:"Pas de stroke unit",ok:false},{nom:"Permanence",ic:"🩺",desc:"Ambulatoire",ok:false}],
+fbDiag:{ok:"Déficit focal brutal + Cincinnati 3/3 + FA connue → AVC ischémique.",ko:"La clinique et le terrain orientent vers un AVC ischémique."},fbDest:{ok:"AVC < 4h30 → Stroke Center pour thrombolyse/thrombectomie.",ko:"Le Stroke Center est indispensable pour ce patient."},tMax:180,pVie:0.1},
+{titre:"Détresse respiratoire — H 55 ans",svg:"h",ind:[],plainte:"Dyspnée sévère depuis 2h, aggravation progressive",situation:"Homme 55 ans en position tripode. Tirage intercostal, cyanose péribuccale. Ne peut dire que des mots isolés.",anam:[{q:"Depuis quand êtes-vous essoufflé ?",r:"Deux... heures..."},{q:"Fièvre ou toux ?",r:"Tousse... 3 jours... crachats jaunes..."},{q:"Antécédents ?",r:"BPCO stade III, O2 nocturne 2L. Ex-fumeur 40 paquets-années."},{q:"Traitements habituels ?",r:"Spiriva, Symbicort, ventoline au besoin."},{q:"Ventoline utilisée ?",r:"Oui... sans effet."},{q:"Allergies ?",r:"Pénicilline."},{q:"Déjà intubé ?",r:"Non, soins intensifs il y a 2 ans."},{q:"Pouvez-vous vous allonger ?",r:"[Secoue la tête]"}],pv:{fc:122,spo2:84,tas:152,tad:88,fr:32,temp:38.2,glyc:7.1},ecgType:"tachycardie",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"ausc",nom:"Auscultation pulmonaire",ic:"🫁",ok:true,res:"Sibilants diffus bilatéraux, MV diminué"},{id:"temp",nom:"Température",ic:"🌡",ok:true,res:"38.2 °C"},{id:"etco2",nom:"Capnographie (EtCO2)",ic:"📊",ok:true,res:"EtCO2 : 52 mmHg — hypercapnie"},{id:"glyc",nom:"Glycémie capillaire",ic:"🩸",ok:false,res:"7.1 mmol/L"},{id:"ecg12",nom:"ECG 12 dérivations",ic:"📈",ok:false,act:"ecg12"}],
+traitements:[{id:"o2",nom:"O2 masque (cible 88-92%)",ic:"😮‍💨",ok:true,fb:"Oxygénothérapie débutée."},{id:"salbu",nom:"Salbutamol 5mg nébulisé",ic:"💨",ok:true,fb:"Bronchodilatateur β2."},{id:"ipra",nom:"Ipratropium 0.5mg nébu",ic:"💨",ok:true,fb:"Anticholinergique ajouté."},{id:"cort",nom:"Méthylprednisolone 40mg IV",ic:"💉",ok:true,fb:"Corticoïde systémique."},{id:"nacl",nom:"NaCl 0.9% — VVP",ic:"🧪",ok:true,fb:"Accès IV sécurisé."},{id:"fenta",nom:"Fentanyl 50mcg IV",ic:"💉",ok:false,fb:"Dépression respiratoire."},{id:"keta",nom:"Kétamine 10mg IV",ic:"💉",ok:false,fb:"Pas d'indication antalgique."},{id:"adr",nom:"Adrénaline 0.3mg IM",ic:"💉",ok:false,fb:"Réservée à l'anaphylaxie."},{id:"antibio",nom:"Amoxicilline 1g IV",ic:"💉",ok:false,fb:"Allergie à la pénicilline !"}],
+diagnostics:[{nom:"Exacerbation de BPCO",ok:true},{nom:"Crise d'asthme",ok:false},{nom:"Embolie pulmonaire",ok:false},{nom:"Pneumothorax",ok:false},{nom:"OAP cardiogénique",ok:false},{nom:"Pneumonie isolée",ok:false}],
+destinations:[{nom:"HUG — Urgences",ic:"🏥",desc:"Soins intensifs disponibles",ok:true},{nom:"Clinique privée",ic:"🏨",desc:"Pas de soins intensifs",ok:false},{nom:"Permanence",ic:"🩺",desc:"Ambulatoire",ok:false},{nom:"Domicile",ic:"🏠",desc:"Suivi médecin traitant",ok:false}],
+fbDiag:{ok:"BPCO stade III + fièvre + sibilants + crachats purulents → exacerbation infectieuse.",ko:"Les antécédents de BPCO et la clinique orientent vers une exacerbation."},fbDest:{ok:"SpO2 84%, EtCO2 52, FR 32 → nécessite soins intensifs.",ko:"Cette décompensation nécessite un centre avec soins intensifs."},tMax:180,pVie:0.12},
+{titre:"Polytraumatisé — H 30 ans",svg:"h",ind:["sang"],plainte:"Éjection moto 80 km/h, plaie cuisse G, hémorragie",situation:"Motocycliste éjecté à ~80 km/h. Confus. Plaie de 15 cm à la cuisse gauche avec saignement artériel pulsatile. Très pâle.",anam:[{q:"Où avez-vous mal ?",r:"Ma jambe..."},{q:"Souvenir de l'accident ?",r:"J'ai glissé... [confus]"},{q:"Antécédents ?",r:"[Pas de réponse, pas de bracelet]"},{q:"Médicaments ?",r:"Non..."},{q:"Allergies ?",r:"Sais pas..."},{q:"Mal ailleurs ?",r:"Le ventre aussi..."},{q:"Bouger vos orteils ?",r:"[Grimace de douleur]"},{q:"Alcool ?",r:"Non."}],pv:{fc:130,spo2:94,tas:82,tad:50,fr:28,temp:35.8,glyc:6.5},ecgType:"tachycardie",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"garrot",nom:"Garrot tourniquet cuisse G",ic:"🩹",ok:true,res:"Saignement contrôlé, heure notée"},{id:"abdo",nom:"Palpation abdominale",ic:"🤚",ok:true,res:"Défense diffuse quadrant gauche"},{id:"bassin",nom:"Compression pelvienne",ic:"🦴",ok:true,res:"Bassin stable"},{id:"temp",nom:"Température",ic:"🌡",ok:true,res:"35.8 °C — hypothermie débutante"},{id:"ecg12",nom:"ECG 12 dérivations",ic:"📈",ok:false,act:"ecg12"}],
+traitements:[{id:"nacl",nom:"NaCl 500ml — 2 VVP gros calibre",ic:"🧪",ok:true,fb:"Remplissage prudent."},{id:"txa",nom:"Acide tranexamique 1g IV",ic:"💉",ok:true,fb:"Antifibrinolytique < 3h."},{id:"keta",nom:"Kétamine 0.3mg/kg IV",ic:"💉",ok:true,fb:"Analgésie sans chute tensionnelle."},{id:"couv",nom:"Couverture de survie",ic:"🟨",ok:true,fb:"Prévention hypothermie."},{id:"o2",nom:"O2 15L MHC",ic:"😮‍💨",ok:true,fb:"Optimisation de l'oxygénation."},{id:"fenta",nom:"Fentanyl 50mcg IV",ic:"💉",ok:false,fb:"Risque d'hypotension sévère."},{id:"nacl2l",nom:"NaCl 2000ml rapide",ic:"🧪",ok:false,fb:"Dilution des facteurs de coagulation."},{id:"adr",nom:"Adrénaline 1mg IV",ic:"💉",ok:false,fb:"Pas d'arrêt cardiaque."}],
+diagnostics:[{nom:"Choc hémorragique",ok:true},{nom:"Pneumothorax compressif",ok:false},{nom:"Tamponnade cardiaque",ok:false},{nom:"Choc neurogénique",ok:false},{nom:"Fracture du bassin",ok:false},{nom:"Rhabdomyolyse",ok:false}],
+destinations:[{nom:"HUG — Trauma Center",ic:"🏥",desc:"Déchocage + chirurgie + transfusion",ok:true},{nom:"HUG — Urgences",ic:"🏥",desc:"Urgences générales",ok:false},{nom:"Clinique privée",ic:"🏨",desc:"Pas de plateau trauma",ok:false},{nom:"Permanence",ic:"🩺",desc:"Ambulatoire",ok:false}],
+fbDiag:{ok:"Hémorragie active + tachycardie + hypotension → choc hémorragique classe III.",ko:"Saignement actif avec instabilité hémodynamique → choc hémorragique."},fbDest:{ok:"Trauma center — scoop and run, déchocage + transfusion massive.",ko:"Le choc hémorragique nécessite un trauma center."},tMax:150,pVie:0.18},
+{titre:"Convulsions — H 35 ans",svg:"h",ind:[],plainte:"Convulsions généralisées > 5 min sans reprise",situation:"Homme 35 ans au sol. Mouvements tonico-cloniques persistants. Bave, cyanose péribuccale.",anam:[{q:"Que s'est-il passé ?",r:"Témoin : « Il est tombé et a convulsé. »"},{q:"Épileptique connu ?",r:"« Oui, depuis 10 ans. »"},{q:"Quel traitement ?",r:"« Dépakine. »"},{q:"Crises similaires ?",r:"« D'habitude ça s'arrête vite. »"},{q:"Alcool ?",r:"« 2-3 verres de vin. »"},{q:"Allergies ?",r:"« Je ne sais pas. »"},{q:"Observance du traitement ?",r:"« Il oubliait parfois. »"},{q:"Blessure en tombant ?",r:"« Il a cogné la tête. »"}],pv:{fc:115,spo2:88,tas:165,tad:95,fr:8,temp:38.0,glyc:5.8},ecgType:"tachycardie",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"glyc",nom:"Glycémie capillaire",ic:"🩸",ok:true,res:"5.8 mmol/L"},{id:"temp",nom:"Température",ic:"🌡",ok:true,res:"38.0 °C"},{id:"pup",nom:"Examen pupillaire",ic:"👁",ok:true,res:"Mydriase bilatérale réactive"},{id:"neuro",nom:"Glasgow",ic:"🧠",ok:true,res:"GCS 6 (E1V2M3)"},{id:"crane",nom:"Examen crânien",ic:"🤕",ok:true,res:"Hématome occipital"}],
+traitements:[{id:"midaz",nom:"Midazolam 5mg IM/IN",ic:"💉",ok:true,fb:"Benzodiazépine 1ère ligne."},{id:"o2",nom:"O2 15L MHC",ic:"😮‍💨",ok:true,fb:"SpO2 88% — oxygénation urgente."},{id:"pls",nom:"PLS (post-critique)",ic:"🔄",ok:true,fb:"Protection des voies aériennes."},{id:"nacl",nom:"NaCl 0.9% — VVP",ic:"🧪",ok:true,fb:"Accès veineux."},{id:"glucose",nom:"Glucose 30% IV",ic:"💉",ok:false,fb:"Glycémie normale."},{id:"fluma",nom:"Flumazénil 0.2mg IV",ic:"💉",ok:false,fb:"Contre-indiqué chez épileptique."},{id:"intub",nom:"Intubation",ic:"🫁",ok:false,fb:"D'abord benzodiazépine + O2."}],
+diagnostics:[{nom:"État de mal épileptique",ok:true},{nom:"Crise unique prolongée",ok:false},{nom:"Hypoglycémie",ok:false},{nom:"Méningite",ok:false},{nom:"AVC",ok:false},{nom:"Intoxication",ok:false}],
+destinations:[{nom:"HUG — Urgences",ic:"🏥",desc:"Centre universitaire, neuro",ok:true},{nom:"Clinique privée",ic:"🏨",desc:"Pas de neurologie",ok:false},{nom:"Permanence",ic:"🩺",desc:"Ambulatoire",ok:false},{nom:"Domicile",ic:"🏠",desc:"Suivi MT",ok:false}],
+fbDiag:{ok:"> 5 min sans reprise + épileptique connu + mauvaise observance → état de mal épileptique.",ko:"La durée et les antécédents pointent vers un état de mal épileptique."},fbDest:{ok:"GCS 6, traumatisme crânien → urgences pour imagerie et surveillance.",ko:"Hospitalisation indispensable."},tMax:180,pVie:0.13},
+{titre:"Malaise — F 45 ans",svg:"f",ind:[],plainte:"Faiblesse et vertiges depuis 1 heure",situation:"Femme 45 ans au bureau. Très pâle, faible, vertigineuse. Collègues inquiets.",anam:[{q:"Que ressentez-vous ?",r:"Tout tourne, nausées depuis 1 heure."},{q:"Douleur ?",r:"Pas thoracique. Tête et ventre."},{q:"Antécédents ?",r:"Anémie il y a 2 ans. Règles très abondantes."},{q:"Traitements habituels ?",r:"Fer quand j'y pense."},{q:"Allergies ?",r:"Non."},{q:"Dernier repas ?",r:"Un café ce matin."},{q:"Règles actuellement ?",r:"Oui, très abondantes depuis 3 jours."},{q:"Grossesse possible ?",r:"Non, stérilet au cuivre."}],pv:{fc:105,spo2:99,tas:98,tad:62,fr:18,temp:36.2,glyc:5.1},ecgType:"sinusal",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"glyc",nom:"Glycémie capillaire",ic:"🩸",ok:true,res:"5.1 mmol/L"},{id:"ecg12",nom:"ECG 12 dérivations",ic:"📈",ok:true,act:"ecg12"},{id:"neuro",nom:"Examen neurologique",ic:"🧠",ok:true,res:"GCS 15. Pâleur conjonctivale marquée."},{id:"abdo",nom:"Palpation abdominale",ic:"🤚",ok:true,res:"Sensibilité hypogastrique"},{id:"ortho",nom:"Test orthostatique",ic:"🧍",ok:true,res:"98/62 → 78/50 debout + vertiges"}],
+traitements:[{id:"nacl",nom:"NaCl 0.9% 500ml IV",ic:"🧪",ok:true,fb:"Remplissage vasculaire."},{id:"trend",nom:"Position de Trendelenburg",ic:"🛏",ok:true,fb:"Favorise le retour veineux."},{id:"o2",nom:"O2 4L lunettes",ic:"😮‍💨",ok:false,fb:"SpO2 99% — pas d'indication."},{id:"para",nom:"Paracétamol 1g IV",ic:"💉",ok:false,fb:"Céphalée secondaire à l'anémie."},{id:"atro",nom:"Atropine 0.5mg IV",ic:"💉",ok:false,fb:"Pas de bradycardie."},{id:"glucose",nom:"Glucose 30% IV",ic:"💉",ok:false,fb:"Normoglycémie."}],
+diagnostics:[{nom:"Anémie aiguë sur ménorragies",ok:true},{nom:"Hypoglycémie",ok:false},{nom:"Malaise vagal",ok:false},{nom:"Embolie pulmonaire",ok:false},{nom:"GEU rompue",ok:false},{nom:"Déshydratation",ok:false}],
+destinations:[{nom:"HUG — Urgences",ic:"🏥",desc:"Bilan sanguin + avis gynéco",ok:true},{nom:"Permanence",ic:"🩺",desc:"Ambulatoire",ok:false},{nom:"Clinique privée",ic:"🏨",desc:"Privé",ok:false},{nom:"Domicile",ic:"🏠",desc:"Suivi MT",ok:false}],
+fbDiag:{ok:"Hypotension orthostatique + tachycardie + ménorragies abondantes → anémie aiguë.",ko:"Les ménorragies et l'hémodynamique orientent vers une anémie aiguë."},fbDest:{ok:"Bilan hémoglobine, éventuelle transfusion, avis gynécologique.",ko:"Un bilan hospitalier est nécessaire."},tMax:180,pVie:0.07},
+{titre:"Détresse respiratoire — Enfant 3 ans",svg:"e",ind:[],plainte:"Stridor inspiratoire brutal pendant le repas",situation:"Enfant 3 ans sur les genoux de sa mère, stridor inspiratoire, tirage sus-sternal marqué. Bave abondante. Repas en cours.",anam:[{q:"Que s'est-il passé ?",r:"Mère : « Il mangeait des cacahuètes et a toussé d'un coup ! »"},{q:"Tousse-t-il encore ?",r:"« Moins qu'avant mais il respire très mal. »"},{q:"Fièvre récente ?",r:"« Non, il allait très bien ! »"},{q:"Antécédents ?",r:"« Rien du tout. Vaccins à jour. »"},{q:"Allergies connues ?",r:"« Aucune. »"},{q:"Déjà arrivé ?",r:"« Jamais ! »"},{q:"La toux est-elle efficace ?",r:"[Toux faible, peu productive — obstruction partielle]"},{q:"A-t-il changé de couleur ?",r:"« Bleu autour des lèvres ! »"}],pv:{fc:155,spo2:89,tas:95,tad:60,fr:40,temp:36.8,glyc:6.0},ecgType:"tachycardie",
+examens:[{id:"scope",nom:"Monitoring",ic:"📟",ok:true,act:"scope"},{id:"pv",nom:"Paramètres vitaux",ic:"🫀",ok:true,act:"pv"},{id:"ausc",nom:"Auscultation pulmonaire",ic:"🫁",ok:true,res:"Wheezing unilatéral droit"},{id:"insp",nom:"Inspection oropharyngée",ic:"👄",ok:true,res:"Pas de corps étranger visible"},{id:"neuro",nom:"Glasgow pédiatrique",ic:"🧠",ok:true,res:"GCS pédiatrique 13"},{id:"glyc",nom:"Glycémie capillaire",ic:"🩸",ok:false,res:"6.0 mmol/L"},{id:"ecg12",nom:"ECG 12 dérivations",ic:"📈",ok:false,act:"ecg12"}],
+traitements:[{id:"o2",nom:"O2 humidifié adapté",ic:"😮‍💨",ok:true,fb:"SpO2 89% — oxygénation urgente."},{id:"pos",nom:"Position assise confortable",ic:"🧒",ok:true,fb:"Ne surtout pas allonger l'enfant."},{id:"calme",nom:"Environnement calme + parent",ic:"💚",ok:true,fb:"L'agitation aggrave l'obstruction."},{id:"nacl",nom:"VVP pédiatrique",ic:"🧪",ok:true,fb:"Accès veineux sécurisé."},{id:"heim",nom:"Manœuvre de Heimlich",ic:"🤜",ok:false,fb:"Obstruction PARTIELLE — contre-indiqué."},{id:"salbu",nom:"Salbutamol nébulisé",ic:"💨",ok:false,fb:"Wheezing d'origine mécanique."},{id:"dexa",nom:"Dexaméthasone IV",ic:"💉",ok:false,fb:"Pas une laryngite."},{id:"adr",nom:"Adrénaline nébulisée",ic:"💨",ok:false,fb:"Pas une laryngite."}],
+diagnostics:[{nom:"Corps étranger inhalé",ok:true},{nom:"Laryngite (croup)",ok:false},{nom:"Épiglottite",ok:false},{nom:"Crise d'asthme",ok:false},{nom:"Anaphylaxie",ok:false},{nom:"Fausse route / RGO",ok:false}],
+destinations:[{nom:"HUG — Urgences pédiatriques",ic:"🏥",desc:"Bronchoscopie rigide disponible",ok:true},{nom:"HUG — Urgences adultes",ic:"🏥",desc:"Pas adapté",ok:false},{nom:"Clinique privée",ic:"🏨",desc:"Pas d'ORL pédiatrique",ok:false},{nom:"Domicile",ic:"🏠",desc:"Surveillance parentale",ok:false}],
+fbDiag:{ok:"Repas + stridor brutal + wheezing unilatéral droit → corps étranger inhalé.",ko:"Le contexte alimentaire et l'asymétrie auscultatoire orientent vers un corps étranger."},fbDest:{ok:"Urgences pédiatriques pour bronchoscopie rigide d'extraction.",ko:"Un plateau technique pédiatrique est indispensable."},tMax:150,pVie:0.14}
+];
+
+let E={sc:0,vie:100,score:0,chrono:0,tC:null,tV:null,tPV:null,tFC:null,scopeOn:false,pvOn:false,glycVu:false,tempVu:false,examF:[],traitF:[],diagC:null,destC:null,animE:null,anim12:[]};
+function initAccueil(){const g=document.getElementById('scG');g.innerHTML='';SC.forEach((s,i)=>{const d=document.createElement('div');d.className='sc';d.innerHTML='<div class="sn">Scénario '+(i+1)+'</div><div class="st">'+s.titre+'</div><div class="sd">'+s.plainte.substring(0,55)+'…</div>';d.onclick=()=>{E.sc=i;lancerSc();};g.appendChild(d);});}
+function aff(id){document.querySelectorAll('.ecran').forEach(e=>e.classList.remove('actif'));document.getElementById(id).classList.add('actif');}
+function lancerSc(){const sc=SC[E.sc];E.vie=100;E.chrono=sc.tMax;E.scopeOn=false;E.pvOn=false;E.glycVu=false;E.tempVu=false;E.examF=[];E.traitF=[];E.diagC=null;E.destC=null;E.score=0;if(E.animE)cancelAnimationFrame(E.animE);E.anim12.forEach(a=>cancelAnimationFrame(a));E.anim12=[];clearInterval(E.tC);clearInterval(E.tV);clearInterval(E.tPV);clearInterval(E.tFC);aff('ecranJeu');document.getElementById('numSc').textContent=E.sc+1;document.getElementById('totSc').textContent=SC.length;majVie();sil(sc);document.getElementById('infoCont').innerHTML=sc.situation;document.getElementById('infoBox').querySelectorAll('.ra').forEach(e=>e.remove());const eb=document.getElementById('ecgBande');eb.className='bd-ecg off';eb.innerHTML='📟 Monitoring non branché';document.getElementById('pvZone').innerHTML='<div style="color:var(--gris);font-size:0.8rem;text-align:center;padding:20px;">Paramètres vitaux<br>—</div>';construireAnam(sc);construireExam(sc);construireTrait(sc);document.querySelectorAll('.modal-ov').forEach(m=>m.classList.remove('actif'));initMobile();demarrerChrono();demarrerPerte();}
+function sil(sc){const z=document.getElementById('silZ');let s='';if(sc.svg==='f')s='<svg viewBox="0 0 100 160"><circle cx="50" cy="22" r="14" fill="#f5cba7"/><path d="M36 18 Q34 8 45 6 Q55 3 64 10 Q68 16 66 22" fill="#8B7355"/><circle cx="45" cy="20" r="1.5" fill="#333"/><circle cx="55" cy="20" r="1.5" fill="#333"/><path d="M46 26 Q50 29 54 26" fill="none" stroke="#333" stroke-width="0.8"/><rect x="38" y="38" width="24" height="40" rx="4" fill="#6BB3E0"/><rect x="36" y="68" width="28" height="36" rx="3" fill="#3A7BBF"/><rect x="36" y="100" width="12" height="42" rx="3" fill="#2C5F8A"/><rect x="52" y="100" width="12" height="42" rx="3" fill="#2C5F8A"/><rect x="34" y="140" width="14" height="6" rx="2" fill="#555"/><rect x="52" y="140" width="14" height="6" rx="2" fill="#555"/><rect x="24" y="42" width="14" height="5" rx="2" fill="#f5cba7"/><rect x="62" y="42" width="14" height="5" rx="2" fill="#f5cba7"/></svg>';else if(sc.svg==='e')s='<svg viewBox="0 0 100 130"><circle cx="50" cy="22" r="14" fill="#fce0c5"/><ellipse cx="50" cy="14" rx="12" ry="8" fill="#A0784C"/><circle cx="45" cy="20" r="1.8" fill="#333"/><circle cx="55" cy="20" r="1.8" fill="#333"/><path d="M46 26 Q50 29 54 26" fill="none" stroke="#333" stroke-width="0.8"/><rect x="40" y="38" width="20" height="30" rx="4" fill="#F9A825"/><rect x="38" y="62" width="24" height="28" rx="3" fill="#1565C0"/><rect x="38" y="86" width="10" height="30" rx="3" fill="#0D47A1"/><rect x="52" y="86" width="10" height="30" rx="3" fill="#0D47A1"/><rect x="36" y="114" width="12" height="5" rx="2" fill="#555"/><rect x="52" y="114" width="12" height="5" rx="2" fill="#555"/><rect x="28" y="42" width="12" height="4" rx="2" fill="#fce0c5"/><rect x="60" y="42" width="12" height="4" rx="2" fill="#fce0c5"/></svg>';else s='<svg viewBox="0 0 100 160"><circle cx="50" cy="22" r="14" fill="#e8b896"/><ellipse cx="50" cy="14" rx="14" ry="8" fill="#5D4E37"/><circle cx="45" cy="20" r="1.5" fill="#333"/><circle cx="55" cy="20" r="1.5" fill="#333"/><path d="M46 26 Q50 29 54 26" fill="none" stroke="#333" stroke-width="0.8"/><rect x="38" y="38" width="24" height="40" rx="4" fill="#5B8C5A"/><rect x="36" y="68" width="28" height="36" rx="3" fill="#4A7A49"/><rect x="36" y="100" width="12" height="42" rx="3" fill="#3B6239"/><rect x="52" y="100" width="12" height="42" rx="3" fill="#3B6239"/><rect x="34" y="140" width="14" height="6" rx="2" fill="#555"/><rect x="52" y="140" width="14" height="6" rx="2" fill="#555"/><rect x="24" y="42" width="14" height="5" rx="2" fill="#e8b896"/><rect x="62" y="42" width="14" height="5" rx="2" fill="#e8b896"/>'+(sc.ind.includes('sang')?'<ellipse cx="42" cy="120" rx="8" ry="4" fill="#8B0000" opacity="0.7"/>':'')+'</svg>';z.innerHTML=s;}
+function construireAnam(sc){const z=document.getElementById('zAnam');z.innerHTML='';sc.anam.forEach((a,i)=>{const d=document.createElement('div');d.className='qi';d.id='a_'+i;d.innerHTML='<span class="qic">❓</span><span>'+a.q+'</span>';d.onclick=()=>poserQ(i,sc);z.appendChild(d);});}
+function poserQ(i,sc){const el=document.getElementById('a_'+i);if(el.classList.contains('fait'))return;el.classList.add('fait');el.querySelector('.qic').textContent='✅';ajRes('<b>'+sc.anam[i].q+'</b> '+sc.anam[i].r);E.score+=1;}
+function construireExam(sc){const z=document.getElementById('gExam');z.innerHTML='';sc.examens.forEach(ex=>{const b=document.createElement('button');b.className='abtn';b.id='ex_'+ex.id;b.innerHTML='<span class="ic">'+ex.ic+'</span>'+ex.nom;b.onclick=()=>faireExam(ex,sc);z.appendChild(b);});}
+function faireExam(ex,sc){if(E.examF.includes(ex.id))return;E.examF.push(ex.id);const el=document.getElementById('ex_'+ex.id);if(ex.ok){el.classList.add('ok');E.score+=3;E.vie=Math.min(100,E.vie+2);notif(ex.nom+' ✓','ok');}else{el.classList.add('ko');E.score-=3;E.vie=Math.max(0,E.vie-3);notif(ex.nom+' — non prioritaire','ko');}if(ex.act==='scope')activerScope(sc);if(ex.act==='pv')activerPV(sc);if(ex.act==='ecg12')ouvrirEcg12(sc);if(ex.id==='glyc'){E.glycVu=true;if(E.pvOn)affPV(sc);}if(ex.id==='temp'){E.tempVu=true;if(E.pvOn)affPV(sc);}if(ex.res)ajRes('📋 '+ex.res);majVie();}
+function ajRes(t){const box=document.getElementById('infoBox');const r=document.createElement('div');r.className='ra';r.innerHTML=t;box.appendChild(r);const cc=box.closest('.col-corps');if(cc)cc.scrollTop=cc.scrollHeight;}
+function activerScope(sc){if(E.scopeOn)return;E.scopeOn=true;const eb=document.getElementById('ecgBande');eb.className='bd-ecg';eb.innerHTML='<canvas id="ecgCv" style="width:100%;height:100%;display:block;"></canvas><div class="el el1">II</div><div class="el el2">V1</div><div class="el el3">V5</div>';lancerECG(sc.ecgType);notif('Monitoring connecté','info');}
+function activerPV(sc){if(E.pvOn)return;E.pvOn=true;affPV(sc);E.tPV=setInterval(()=>affPV(sc),10000);E.tFC=setInterval(()=>{const el=document.getElementById('fcVal');if(!el)return;const nv=sc.pv.fc+Math.round((Math.random()-0.5)*6);el.textContent=nv;el.classList.remove('pv-flash');void el.offsetWidth;el.classList.add('pv-flash');},1000);}
+function affPV(sc){const v=sc.pv;const fc=v.fc+Math.round((Math.random()-0.5)*4);const sp=Math.min(100,Math.max(50,v.spo2+Math.round((Math.random()-0.5)*2)));const tas=v.tas+Math.round((Math.random()-0.5)*6);const tad=v.tad+Math.round((Math.random()-0.5)*4);const fr=v.fr+Math.round((Math.random()-0.5)*2);const tmp=(v.temp+(Math.random()-0.5)*0.2).toFixed(1);const gl=(v.glyc+(Math.random()-0.5)*0.3).toFixed(1);const z=document.getElementById('pvZone');let h='<div class="pvr"><span class="pl">FC</span><span class="pval pv-flash cv" id="fcVal">'+fc+'</span><span class="pu">bpm</span></div>';h+='<div class="pvr"><span class="pl">SpO2</span><span class="pval pv-flash '+(sp>=95?'cb':sp>=90?'cj':'cr')+'">'+sp+'%</span><span class="pu"></span></div>';h+='<div class="pvr"><span class="pl">TA</span><span class="pval pv-flash '+(tas<90?'cr':tas>160?'co':'cbl')+'">'+tas+'/'+tad+'</span><span class="pu">mmHg</span></div>';h+='<div class="pvr"><span class="pl">FR</span><span class="pval pv-flash '+(fr>25||fr<10?'cj':'cbl')+'">'+fr+'</span><span class="pu">/min</span></div>';if(E.tempVu)h+='<div class="pvr"><span class="pl">T°</span><span class="pval pv-flash '+(parseFloat(tmp)>37.5?'co':'cbl')+'">'+tmp+'°C</span><span class="pu"></span></div>';if(E.glycVu)h+='<div class="pvr"><span class="pl">Glyc</span><span class="pval pv-flash '+(parseFloat(gl)>7?'co':parseFloat(gl)<4?'cr':'cbl')+'">'+gl+'</span><span class="pu">mmol/L</span></div>';z.innerHTML=h;}
+function construireTrait(sc){const z=document.getElementById('gTrait');z.innerHTML='';sc.traitements.forEach(tr=>{const b=document.createElement('button');b.className='abtn';b.id='tr_'+tr.id;b.innerHTML='<span class="ic">'+tr.ic+'</span>'+tr.nom;b.onclick=()=>admin(tr);z.appendChild(b);});}
+function admin(tr){if(E.traitF.includes(tr.id))return;E.traitF.push(tr.id);const el=document.getElementById('tr_'+tr.id);if(tr.ok){el.classList.add('ok');E.score+=5;E.vie=Math.min(100,E.vie+3);notif(tr.nom+' ✓','ok');}else{el.classList.add('ko');E.score-=8;E.vie=Math.max(0,E.vie-8);notif(tr.nom+' ✗','ko');}ajRes((tr.ok?'✅ ':'❌ ')+tr.fb);majVie();}
+function transport(){clearInterval(E.tC);clearInterval(E.tV);clearInterval(E.tPV);clearInterval(E.tFC);const sc=SC[E.sc];const m=document.getElementById('modalBox');m.innerHTML='<h2>🚑 Transport — Diagnostic différentiel</h2><p style="font-size:0.85rem;color:var(--gris-c);text-align:center;margin-bottom:12px;">Quel est votre diagnostic principal ?</p><div class="dg" id="dGrille"></div><div class="dest-sec" id="destSec"><h2 style="margin-top:16px;">🏥 Orientation — Destination</h2><div id="dListe"></div></div><div class="rfb" id="fbZone" style="display:none;"></div>';const dg=document.getElementById('dGrille');sc.diagnostics.forEach((d,i)=>{const b=document.createElement('button');b.className='dbtn';b.id='dg_'+i;b.textContent=d.nom;b.onclick=()=>chDiag(d,i,sc);dg.appendChild(b);});document.getElementById('modalTransport').classList.add('actif');}
+function chDiag(d,i,sc){if(E.diagC)return;E.diagC=d;document.querySelectorAll('#dGrille .dbtn').forEach(b=>b.disabled=true);const el=document.getElementById('dg_'+i);if(d.ok){el.classList.add('c-ok');E.score+=10;notif('Diagnostic correct !','ok');}else{el.classList.add('c-ko');E.score-=10;notif('Diagnostic incorrect','ko');sc.diagnostics.forEach((dd,j)=>{if(dd.ok)document.getElementById('dg_'+j).classList.add('br');});}document.getElementById('fbZone').style.display='block';document.getElementById('fbZone').innerHTML=d.ok?sc.fbDiag.ok:sc.fbDiag.ko;document.getElementById('destSec').classList.add('actif');const dl=document.getElementById('dListe');sc.destinations.forEach((ds,j)=>{const div=document.createElement('div');div.className='di';div.id='de_'+j;div.innerHTML='<div class="dic">'+ds.ic+'</div><div><div class="dn">'+ds.nom+'</div><div class="dd">'+ds.desc+'</div></div>';div.onclick=()=>chDest(ds,j,sc);dl.appendChild(div);});}
+function chDest(d,j,sc){if(E.destC)return;E.destC=d;document.querySelectorAll('#dListe .di').forEach(el=>{el.style.pointerEvents='none';el.style.opacity='0.4';});const el=document.getElementById('de_'+j);el.style.opacity='1';if(d.ok){el.classList.add('c-ok');E.score+=15;notif('Destination correcte !','ok');}else{el.classList.add('c-ko');E.score-=15;notif('Mauvaise destination','ko');sc.destinations.forEach((dd,k)=>{if(dd.ok){const x=document.getElementById('de_'+k);x.style.opacity='1';x.classList.add('br');}});}document.getElementById('fbZone').innerHTML+='<br><br>'+(d.ok?sc.fbDest.ok:sc.fbDest.ko);setTimeout(()=>{document.getElementById('modalTransport').classList.remove('actif');recap(sc);},1000);}
+function recap(sc){const z=document.getElementById('recapBox');let h='<h2>📋 Récapitulatif de l\'intervention</h2>';h+='<div class="rs"><h4>🔍 Examens réalisés</h4>';sc.examens.forEach(ex=>{const f=E.examF.includes(ex.id);if(f)h+='<div class="rl '+(ex.ok?'rok':'rko')+'">'+ex.nom+'<span>'+(ex.ok?'✓ correct':'✗ non indiqué')+'</span></div>';else if(ex.ok)h+='<div class="rl rn">'+ex.nom+'<span style="color:var(--orange);">⚠ oublié</span></div>';});h+='</div><div class="rs"><h4>💊 Traitements administrés</h4>';sc.traitements.forEach(tr=>{const f=E.traitF.includes(tr.id);if(f)h+='<div class="rl '+(tr.ok?'rok':'rko')+'">'+tr.nom+'<span>'+(tr.ok?'✓':'✗')+'</span></div><div style="font-size:0.7rem;color:var(--gris-c);padding:2px 8px;">'+tr.fb+'</div>';else if(tr.ok)h+='<div class="rl rn">'+tr.nom+'<span style="color:var(--orange);">⚠ oublié</span></div>';});h+='</div><div class="rs"><h4>🔎 Diagnostic</h4>';if(E.diagC)h+='<div class="rl '+(E.diagC.ok?'rok':'rko')+'">'+E.diagC.nom+'</div>';h+='<div class="rfb">'+sc.fbDiag.ok+'</div></div>';h+='<div class="rs"><h4>🏥 Destination</h4>';if(E.destC)h+='<div class="rl '+(E.destC.ok?'rok':'rko')+'">'+E.destC.nom+'</div>';h+='<div class="rfb">'+sc.fbDest.ok+'</div></div>';h+='<div class="rsc"><div class="val" style="color:'+(E.score>30?'var(--vert)':E.score>0?'var(--orange)':'var(--rouge)')+'">'+E.score+' pts</div><div class="lab">Vie restante : '+Math.round(E.vie)+'%</div></div>';h+='<div class="rbtns">';if(E.sc<SC.length-1)h+='<button class="btn btn-bleu" onclick="document.getElementById(\'modalRecap\').classList.remove(\'actif\');E.sc++;lancerSc();">Scénario suivant →</button>';h+='<button class="btn btn-fantome" onclick="document.getElementById(\'modalRecap\').classList.remove(\'actif\');aff(\'ecranAccueil\');">Retour au menu</button></div>';z.innerHTML=h;document.getElementById('modalRecap').classList.add('actif');}
+function demarrerChrono(){clearInterval(E.tC);majChrono();E.tC=setInterval(()=>{E.chrono--;if(E.chrono<=0){E.chrono=0;clearInterval(E.tC);}majChrono();},1000);}
+function demarrerPerte(){clearInterval(E.tV);const sc=SC[E.sc];E.tV=setInterval(()=>{if(E.destC)return;E.vie=Math.max(0,E.vie-sc.pVie);majVie();},100);}
+function majChrono(){const m=Math.floor(E.chrono/60),s=E.chrono%60;const el=document.getElementById('chrono');el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');el.style.color=E.chrono<=30?'var(--rouge)':E.chrono<=60?'var(--orange)':'var(--orange)';}
+function majVie(){const v=Math.max(0,Math.round(E.vie));document.getElementById('vieTxt').textContent='❤️ '+v+'%';document.getElementById('vieTxt').style.color=v>60?'var(--vert)':v>30?'var(--orange)':'var(--rouge)';const j=document.getElementById('vieJ');j.style.width=v+'%';j.style.background=v>60?'var(--vert)':v>30?'var(--orange)':'var(--rouge)';}
+function notif(m,t){const d=document.createElement('div');d.className='notif n-'+t;d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2300);}
+function traceECG(ctx,type,w,h,mid,t,dec){for(let x=0;x<w;x++){const ph=x+t+dec;let y=mid;const a=h/150;if(type==='sinusal'){const c=180,p=((ph%c)+c)%c;if(p>40&&p<48)y=mid-6*a;else if(p>56&&p<60)y=mid+4*a;else if(p>60&&p<64)y=mid-30*a;else if(p>64&&p<68)y=mid+9*a;else if(p>82&&p<96)y=mid-7*a;}else if(type==='stemi'){const c=180,p=((ph%c)+c)%c;if(p>40&&p<48)y=mid-5*a;else if(p>56&&p<60)y=mid+4*a;else if(p>60&&p<64)y=mid-30*a;else if(p>64&&p<68)y=mid+7*a;else if(p>68&&p<100)y=mid-14*a;else if(p>100&&p<112)y=mid-10*a;}else if(type==='fa'){const c=140+Math.sin(t*0.008)*25,p=((ph%c)+c)%c;if(p>50&&p<54)y=mid+3*a;else if(p>54&&p<58)y=mid-26*a;else if(p>58&&p<62)y=mid+9*a;else if(p>75&&p<86)y=mid-6*a;else y=mid+(Math.sin(ph*0.8)*1.5);}else if(type==='tachycardie'){const c=110,p=((ph%c)+c)%c;if(p>24&&p<29)y=mid-4*a;else if(p>34&&p<37)y=mid+3*a;else if(p>37&&p<41)y=mid-26*a;else if(p>41&&p<45)y=mid+8*a;else if(p>54&&p<66)y=mid-5*a;}if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}}
+function lancerECG(type){if(E.animE)cancelAnimationFrame(E.animE);const cv=document.getElementById('ecgCv');if(!cv)return;const ctx=cv.getContext('2d');const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=cv.offsetHeight*dpr;ctx.scale(dpr,dpr);const w=cv.offsetWidth,h=cv.offsetHeight;let t=0;const cols=['#00e676','#42a5f5','#fdd835'];const mids=[0.15,0.5,0.85];function loop(){ctx.fillStyle='#060b04';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#0d1a0d';ctx.lineWidth=0.3;for(let x=0;x<w;x+=15){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}for(let y=0;y<h;y+=15){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=0.5;[0.33,0.66].forEach(r=>{ctx.beginPath();ctx.moveTo(0,h*r);ctx.lineTo(w,h*r);ctx.stroke();});ctx.lineWidth=0.3;for(let i=0;i<3;i++){ctx.strokeStyle=cols[i];ctx.lineWidth=1.6;ctx.shadowColor=cols[i];ctx.shadowBlur=5;ctx.beginPath();traceECG(ctx,type,w,h,h*mids[i],t,i*60);ctx.stroke();}ctx.shadowBlur=0;t+=1.3;E.animE=requestAnimationFrame(loop);}loop();}
+function ouvrirEcg12(sc){const ov=document.getElementById('e12Ov');ov.classList.add('actif');const g=document.getElementById('e12G');g.innerHTML='';E.anim12.forEach(a=>cancelAnimationFrame(a));E.anim12=[];document.getElementById('e12H').textContent=new Date().toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'});DER.forEach((der,idx)=>{const cell=document.createElement('div');cell.className='e12c';cell.innerHTML='<div class="dl">'+der+'</div><canvas id="c12_'+idx+'" style="width:100%;height:100%;display:block;"></canvas>';g.appendChild(cell);});requestAnimationFrame(()=>{DER.forEach((der,idx)=>{const cvs=document.getElementById('c12_'+idx);if(!cvs)return;const ctx=cvs.getContext('2d');const dpr=window.devicePixelRatio||1;cvs.width=cvs.offsetWidth*dpr;cvs.height=cvs.offsetHeight*dpr;ctx.scale(dpr,dpr);const w=cvs.offsetWidth,h=cvs.offsetHeight;let t=0;const dec=idx*35;let amp=1.0;if(der==='aVR')amp=-0.6;if(der==='aVL')amp=0.5;if(der==='III')amp=0.7;if(sc.ecgType==='stemi'&&['V1','V2','V3','V4'].includes(der))amp=1.3;const col=idx<6?'#00e676':'#ff9800';function l12(){ctx.fillStyle='#060b04';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#0d1a0d';ctx.lineWidth=0.3;for(let x=0;x<w;x+=10){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}for(let y=0;y<h;y+=10){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.shadowColor=col;ctx.shadowBlur=2;ctx.beginPath();const mid=h/2,type=sc.ecgType;for(let x=0;x<w;x++){const ph=(x+t+dec)%Math.max(w,180);let y=mid;if(type==='sinusal'){const c=180,p=ph%c;if(p>40&&p<48)y=mid-5*amp*(h/70);else if(p>56&&p<60)y=mid+3*amp*(h/70);else if(p>60&&p<64)y=mid-25*amp*(h/70);else if(p>64&&p<68)y=mid+7*amp*(h/70);else if(p>82&&p<96)y=mid-5*amp*(h/70);}else if(type==='stemi'){const c=180,p=ph%c;if(p>40&&p<48)y=mid-4*amp*(h/70);else if(p>56&&p<60)y=mid+3*amp*(h/70);else if(p>60&&p<64)y=mid-22*amp*(h/70);else if(p>64&&p<68)y=mid+5*amp*(h/70);else if(p>68&&p<100)y=mid-11*amp*(h/70);else if(p>100&&p<112)y=mid-8*amp*(h/70);}else if(type==='fa'){const c=140+Math.sin(t*0.008)*25,p=ph%c;if(p>50&&p<54)y=mid+2*amp*(h/70);else if(p>54&&p<58)y=mid-20*amp*(h/70);else if(p>58&&p<62)y=mid+7*amp*(h/70);else if(p>75&&p<86)y=mid-4*amp*(h/70);else y=mid+Math.random()*1.5*amp;}else if(type==='tachycardie'){const c=110,p=ph%c;if(p>24&&p<29)y=mid-3*amp*(h/70);else if(p>34&&p<37)y=mid+2*amp*(h/70);else if(p>37&&p<41)y=mid-20*amp*(h/70);else if(p>41&&p<45)y=mid+6*amp*(h/70);else if(p>54&&p<66)y=mid-4*amp*(h/70);}if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();ctx.shadowBlur=0;t+=1.1;const aid=requestAnimationFrame(l12);E.anim12.push(aid);}l12();});});ajRes('📋 ECG 12 dérivations réalisé');notif('ECG 12 dérivations','info');}
+function fermer12(){document.getElementById('e12Ov').classList.remove('actif');E.anim12.forEach(a=>cancelAnimationFrame(a));E.anim12=[];}
+function toggleCol(id){if(window.innerWidth>900)return;document.getElementById(id).classList.toggle('ferme');}
+function initMobile(){if(window.innerWidth<=900){document.getElementById('colExamens').classList.add('ferme');document.getElementById('colTraitements').classList.add('ferme');document.getElementById('colPatient').classList.remove('ferme');}else{document.querySelectorAll('.col').forEach(c=>c.classList.remove('ferme'));}}
+window.addEventListener('resize',initMobile);
+initAccueil();
+</script>
+</body>
+</html>

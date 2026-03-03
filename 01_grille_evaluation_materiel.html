@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grille d'évaluation — Matériel médical</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+--rouge-sis: #C41E3A;
+--rouge-fonce: #8B1525;
+--noir: #1a1a1a;
+--gris-fonce: #333;
+--gris: #666;
+--gris-clair: #e8e8e8;
+--fond: #f5f3f0;
+--blanc: #ffffff;
+--vert: #2d8a4e;
+--orange: #d4790e;
+--jaune: #f0c040;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--fond); color: var(--noir); padding: 30px; }
+.entete {
+background: linear-gradient(135deg, var(--rouge-sis), var(--rouge-fonce));
+color: white;
+padding: 30px 40px;
+border-radius: 12px 12px 0 0;
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+}
+.entete h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 6px; }
+.entete p { opacity: 0.85; font-size: 0.9rem; }
+.meta-infos { text-align: right; font-size: 0.85rem; opacity: 0.85; line-height: 1.6; }
+.conteneur {
+max-width: 1100px;
+margin: 0 auto;
+background: var(--blanc);
+border-radius: 12px;
+box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+overflow: hidden;
+}
+.infos-produit {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+padding: 24px 40px;
+background: #fafafa;
+border-bottom: 1px solid var(--gris-clair);
+}
+.champ { display: flex; flex-direction: column; gap: 4px; }
+.champ label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gris); }
+.champ input, .champ select {
+border: 1px solid var(--gris-clair);
+border-radius: 6px;
+padding: 8px 12px;
+font-family: inherit;
+font-size: 0.9rem;
+background: white;
+}
+.champ input:focus, .champ select:focus { outline: none; border-color: var(--rouge-sis); }
+.section-titre {
+padding: 16px 40px 8px;
+font-weight: 700;
+font-size: 1rem;
+color: var(--rouge-sis);
+border-top: 2px solid var(--gris-clair);
+margin-top: 8px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.section-titre span { font-size: 1.2rem; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 16px; text-align: left; font-size: 0.85rem; border-bottom: 1px solid #f0f0f0; }
+th { background: #fafafa; font-weight: 600; color: var(--gris-fonce); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.3px; }
+.col-critere { width: 30%; }
+.col-pond { width: 10%; text-align: center; }
+.col-note { width: 12%; text-align: center; }
+.col-score { width: 12%; text-align: center; font-weight: 600; }
+.col-remarque { width: 36%; }
+td.col-pond, td.col-score { text-align: center; }
+select.note-select {
+width: 60px; padding: 4px;
+border: 1px solid var(--gris-clair); border-radius: 4px;
+text-align: center; font-family: inherit; font-size: 0.85rem;
+}
+input.remarque-input {
+width: 100%;
+border: 1px solid transparent;
+border-bottom: 1px solid var(--gris-clair);
+padding: 4px 8px; font-family: inherit; font-size: 0.85rem; background: transparent;
+}
+input.remarque-input:focus { outline: none; border-bottom-color: var(--rouge-sis); }
+.score-cell { font-weight: 700; }
+.score-vert { color: var(--vert); }
+.score-orange { color: var(--orange); }
+.score-rouge { color: var(--rouge-sis); }
+.bilan {
+margin: 24px 40px; padding: 24px;
+background: linear-gradient(135deg, #fafafa, #f0eeeb);
+border-radius: 10px; border: 1px solid var(--gris-clair);
+display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
+}
+.bilan-item { text-align: center; }
+.bilan-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--gris); letter-spacing: 0.5px; margin-bottom: 6px; }
+.bilan-valeur { font-size: 2rem; font-weight: 700; }
+.bilan-sous { font-size: 0.8rem; color: var(--gris); margin-top: 2px; }
+.legende { padding: 16px 40px 24px; display: flex; gap: 24px; font-size: 0.8rem; color: var(--gris); }
+.legende-item { display: flex; align-items: center; gap: 6px; }
+.pastille { width: 12px; height: 12px; border-radius: 50%; }
+.pastille-vert { background: var(--vert); }
+.pastille-orange { background: var(--orange); }
+.pastille-rouge { background: var(--rouge-sis); }
+.zone-conclusion { padding: 20px 40px 30px; }
+.zone-conclusion h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--gris-fonce); }
+.zone-conclusion textarea {
+width: 100%; border: 1px solid var(--gris-clair); border-radius: 6px;
+padding: 12px; font-family: inherit; font-size: 0.85rem; min-height: 80px; resize: vertical;
+}
+.zone-conclusion textarea:focus { outline: none; border-color: var(--rouge-sis); }
+.actions { padding: 0 40px 30px; display: flex; gap: 12px; justify-content: flex-end; }
+.btn {
+padding: 10px 24px; border-radius: 6px; border: none;
+font-family: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-secondaire { background: var(--gris-clair); color: var(--gris-fonce); }
+.btn-secondaire:hover { background: #ddd; }
+.btn-pdf { background: #1e40af; color: white; display: flex; align-items: center; gap: 6px; }
+.btn-pdf:hover { background: #1a3690; }
+.btn-pdf svg { width: 16px; height: 16px; fill: white; }
+.btn-pdf.chargement { opacity: 0.5; pointer-events: none; }
+#statutPdf { padding: 6px 40px; font-size: 0.82rem; display: none; }
+#statutPdf.erreur { color: var(--rouge-sis); display: block; }
+#statutPdf.ok { color: var(--vert); display: block; }
+@media print {
+body { padding: 0; }
+.conteneur { box-shadow: none; }
+.btn, .actions, #statutPdf { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="conteneur">
+<div class="entete">
+<div>
+<h1>Grille d'évaluation — Matériel médical</h1>
+<p>Compagnie Ambulances — SIS Genève</p>
+</div>
+<div class="meta-infos">
+<div>Date : <input type="date" id="champDate" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:4px;padding:2px 6px;font-family:inherit;"></div>
+<div style="margin-top:4px;">Évaluateur : <input type="text" id="champEvaluateur" placeholder="Nom" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:4px;padding:2px 6px;font-family:inherit;width:120px;"></div>
+</div>
+</div>
+<div class="infos-produit">
+<div class="champ"><label>Équipement évalué</label><input type="text" id="champEquipement" placeholder="Ex. : Moniteur Corpuls C3"></div>
+<div class="champ"><label>Fabricant</label><input type="text" id="champFabricant" placeholder="Ex. : Corpuls / GS Elektromedizinische Geräte"></div>
+<div class="champ"><label>Catégorie</label><select id="champCategorie"><option>Monitoring cardiaque</option><option>Défibrillateur</option><option>Respirateur</option><option>Pousse-seringue</option><option>Aspirateur</option><option>Autre</option></select></div>
+<div class="champ"><label>Contexte d'évaluation</label><select id="champContexte"><option>Démonstration fournisseur</option><option>Test terrain (phase pilote)</option><option>Comparaison avec matériel existant</option><option>Renouvellement de parc</option></select></div>
+</div>
+
+<div class="section-titre"><span>🔧</span> 1. Ergonomie et utilisabilité</div>
+<table><thead><tr><th class="col-critere">Critère</th><th class="col-pond">Pond.</th><th class="col-note">Note /5</th><th class="col-score">Score</th><th class="col-remarque">Remarques</th></tr></thead><tbody id="section1"></tbody></table>
+<div class="section-titre"><span>⚡</span> 2. Performance technique</div>
+<table><thead><tr><th class="col-critere">Critère</th><th class="col-pond">Pond.</th><th class="col-note">Note /5</th><th class="col-score">Score</th><th class="col-remarque">Remarques</th></tr></thead><tbody id="section2"></tbody></table>
+<div class="section-titre"><span>🔗</span> 3. Compatibilité et intégration</div>
+<table><thead><tr><th class="col-critere">Critère</th><th class="col-pond">Pond.</th><th class="col-note">Note /5</th><th class="col-score">Score</th><th class="col-remarque">Remarques</th></tr></thead><tbody id="section3"></tbody></table>
+<div class="section-titre"><span>🛡️</span> 4. Robustesse et maintenance</div>
+<table><thead><tr><th class="col-critere">Critère</th><th class="col-pond">Pond.</th><th class="col-note">Note /5</th><th class="col-score">Score</th><th class="col-remarque">Remarques</th></tr></thead><tbody id="section4"></tbody></table>
+<div class="section-titre"><span>💰</span> 5. Aspects économiques</div>
+<table><thead><tr><th class="col-critere">Critère</th><th class="col-pond">Pond.</th><th class="col-note">Note /5</th><th class="col-score">Score</th><th class="col-remarque">Remarques</th></tr></thead><tbody id="section5"></tbody></table>
+<div class="section-titre"><span>📋</span> 6. Conformité et formation</div>
+<table><thead><tr><th class="col-critere">Critère</th><th class="col-pond">Pond.</th><th class="col-note">Note /5</th><th class="col-score">Score</th><th class="col-remarque">Remarques</th></tr></thead><tbody id="section6"></tbody></table>
+
+<div class="bilan">
+<div class="bilan-item"><div class="bilan-label">Score total</div><div class="bilan-valeur" id="scoreTotal">— / —</div><div class="bilan-sous">points obtenus / maximum</div></div>
+<div class="bilan-item"><div class="bilan-label">Pourcentage</div><div class="bilan-valeur" id="scorePourcent">— %</div><div class="bilan-sous" id="appreciationTexte">En attente d'évaluation</div></div>
+<div class="bilan-item"><div class="bilan-label">Recommandation</div><div class="bilan-valeur" id="recommandation" style="font-size:1rem;">—</div></div>
+</div>
+<div class="legende">
+<div class="legende-item"><div class="pastille pastille-vert"></div> ≥ 75% — Recommandé</div>
+<div class="legende-item"><div class="pastille pastille-orange"></div> 50-74% — Acceptable avec réserves</div>
+<div class="legende-item"><div class="pastille pastille-rouge"></div> &lt; 50% — Non recommandé</div>
+</div>
+<div class="zone-conclusion"><h3>Conclusion et recommandation détaillée</h3><textarea id="champConclusion" placeholder="Points forts, points faibles, comparaison avec le matériel actuel, recommandation finale..."></textarea></div>
+<div id="statutPdf"></div>
+<div class="actions">
+<button class="btn btn-secondaire" onclick="reinitialiser()">Réinitialiser</button>
+<button class="btn btn-pdf" id="boutonPdf" onclick="genererPDF()">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h8v1.5H8V14zm0 3h8v1.5H8V17zm0-6h8v1.5H8V11z"/></svg>
+Télécharger en PDF
+</button>
+</div>
+</div>
+
+<script>
+var donneesAffichage = {
+section1: [
+["Prise en main intuitive (sans formation préalable)", 3],
+["Lisibilité de l'écran (luminosité, contraste, taille des chiffres)", 3],
+["Facilité de navigation dans les menus", 2],
+["Poids et encombrement", 2],
+["Manipulation avec gants (boutons, écran tactile)", 3],
+["Qualité sonore des alarmes (audibilité en situation bruyante)", 2]
+],
+section2: [
+["Qualité du tracé ECG (12 dérivations)", 3],
+["Rapidité de mise en route", 3],
+["Fiabilité de la SpO2 en mouvement", 3],
+["Précision de la PNI", 2],
+["Fonction capnographie (EtCO2)", 2],
+["Autonomie batterie (durée opérationnelle)", 3],
+["Temps de charge batterie", 1]
+],
+section3: [
+["Compatibilité avec les consommables existants", 3],
+["Connectivité (Bluetooth, Wi-Fi, export données)", 2],
+["Compatibilité avec le protocole de transmission SMUR", 3],
+["Intégration possible avec les outils existants (App Ambulance, FIP)", 2]
+],
+section4: [
+["Résistance aux chocs et vibrations", 3],
+["Étanchéité (IP rating)", 2],
+["Facilité de nettoyage et décontamination", 2],
+["Disponibilité du SAV en Suisse", 3],
+["Disponibilité des pièces de rechange", 2],
+["Durée de garantie", 1]
+],
+section5: [
+["Coût d'acquisition unitaire", 3],
+["Coût des consommables récurrents", 3],
+["Coût de maintenance annuel estimé", 2],
+["Rapport qualité-prix global", 3]
+],
+section6: [
+["Conformité CE / Swissmedic", 3],
+["Temps de formation nécessaire", 2],
+["Documentation et support technique (français)", 2],
+["Références dans d'autres services (benchmarking)", 1]
+]
+};
+
+var donneesPdf = {
+section1: [
+["Prise en main intuitive (sans formation prealable)", 3],
+["Lisibilite de l'ecran (luminosite, contraste, taille)", 3],
+["Facilite de navigation dans les menus", 2],
+["Poids et encombrement", 2],
+["Manipulation avec gants (boutons, ecran tactile)", 3],
+["Qualite sonore des alarmes (audibilite)", 2]
+],
+section2: [
+["Qualite du trace ECG (12 derivations)", 3],
+["Rapidite de mise en route", 3],
+["Fiabilite de la SpO2 en mouvement", 3],
+["Precision de la PNI", 2],
+["Fonction capnographie (EtCO2)", 2],
+["Autonomie batterie (duree operationnelle)", 3],
+["Temps de charge batterie", 1]
+],
+section3: [
+["Compatibilite avec les consommables existants", 3],
+["Connectivite (Bluetooth, Wi-Fi, export donnees)", 2],
+["Compatibilite protocole transmission SMUR", 3],
+["Integration outils existants (App Ambulance, FIP)", 2]
+],
+section4: [
+["Resistance aux chocs et vibrations", 3],
+["Etancheite (IP rating)", 2],
+["Facilite de nettoyage et decontamination", 2],
+["Disponibilite du SAV en Suisse", 3],
+["Disponibilite des pieces de rechange", 2],
+["Duree de garantie", 1]
+],
+section5: [
+["Cout d'acquisition unitaire", 3],
+["Cout des consommables recurrents", 3],
+["Cout de maintenance annuel estime", 2],
+["Rapport qualite-prix global", 3]
+],
+section6: [
+["Conformite CE / Swissmedic", 3],
+["Temps de formation necessaire", 2],
+["Documentation et support technique (francais)", 2],
+["References dans d'autres services (benchmarking)", 1]
+]
+};
+
+var nomsSectionsPdf = {
+section1: "1. ERGONOMIE ET UTILISABILITE",
+section2: "2. PERFORMANCE TECHNIQUE",
+section3: "3. COMPATIBILITE ET INTEGRATION",
+section4: "4. ROBUSTESSE ET MAINTENANCE",
+section5: "5. ASPECTS ECONOMIQUES",
+section6: "6. CONFORMITE ET FORMATION"
+};
+
+function creerLignes() {
+Object.keys(donneesAffichage).forEach(function(idSec) {
+var tbody = document.getElementById(idSec);
+donneesAffichage[idSec].forEach(function(item, idx) {
+var id = idSec + '_' + idx;
+var tr = document.createElement('tr');
+tr.innerHTML =
+'<td class="col-critere">' + item[0] + '</td>' +
+'<td class="col-pond" style="text-align:center;font-weight:600;">' + item[1] + '</td>' +
+'<td class="col-note" style="text-align:center;"><select class="note-select" id="note_' + id + '" onchange="calculer()"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td>' +
+'<td class="col-score score-cell" style="text-align:center;" id="score_' + id + '">—</td>' +
+'<td class="col-remarque"><input class="remarque-input" id="remarque_' + id + '" type="text" placeholder="..."></td>';
+tbody.appendChild(tr);
+});
+});
+}
+
+function calculer() {
+var totalScore = 0, totalMax = 0;
+Object.keys(donneesAffichage).forEach(function(idSec) {
+donneesAffichage[idSec].forEach(function(item, idx) {
+var id = idSec + '_' + idx;
+var sel = document.getElementById('note_' + id);
+var cel = document.getElementById('score_' + id);
+var pond = item[1];
+if (sel.value === '') { cel.textContent = '—'; cel.className = 'col-score score-cell'; }
+else {
+var n = parseInt(sel.value), s = n * pond, mx = 5 * pond;
+cel.textContent = s + ' / ' + mx;
+totalScore += s; totalMax += mx;
+var p = (s / mx) * 100;
+cel.className = 'col-score score-cell ' + (p >= 75 ? 'score-vert' : p >= 50 ? 'score-orange' : 'score-rouge');
+}
+});
+});
+var maxTh = 0;
+Object.keys(donneesAffichage).forEach(function(k) { donneesAffichage[k].forEach(function(i) { maxTh += 5 * i[1]; }); });
+if (totalMax === 0) {
+document.getElementById('scoreTotal').textContent = '— / —';
+document.getElementById('scorePourcent').textContent = '— %';
+document.getElementById('scorePourcent').className = 'bilan-valeur';
+document.getElementById('appreciationTexte').textContent = "En attente d'évaluation";
+document.getElementById('recommandation').textContent = '—';
+document.getElementById('recommandation').style.color = '';
+return;
+}
+document.getElementById('scoreTotal').textContent = totalScore + ' / ' + maxTh;
+var pct = Math.round((totalScore / maxTh) * 100);
+document.getElementById('scorePourcent').textContent = pct + ' %';
+document.getElementById('scorePourcent').className = 'bilan-valeur ' + (pct >= 75 ? 'score-vert' : pct >= 50 ? 'score-orange' : 'score-rouge');
+if (pct >= 75) { document.getElementById('appreciationTexte').textContent = 'Matériel recommandé'; document.getElementById('recommandation').textContent = '✅ Acquisition recommandée'; document.getElementById('recommandation').style.color = 'var(--vert)'; }
+else if (pct >= 50) { document.getElementById('appreciationTexte').textContent = 'Acceptable avec réserves'; document.getElementById('recommandation').textContent = '⚠️ Réserves à lever avant décision'; document.getElementById('recommandation').style.color = 'var(--orange)'; }
+else { document.getElementById('appreciationTexte').textContent = 'Non satisfaisant'; document.getElementById('recommandation').textContent = '❌ Acquisition non recommandée'; document.getElementById('recommandation').style.color = 'var(--rouge-sis)'; }
+}
+
+function reinitialiser() {
+document.querySelectorAll('.note-select').forEach(function(s) { s.value = ''; });
+document.querySelectorAll('.remarque-input').forEach(function(i) { i.value = ''; });
+document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(function(i) { i.value = ''; });
+calculer();
+}
+
+function afficherStatut(msg, err) {
+var el = document.getElementById('statutPdf');
+el.textContent = msg; el.className = err ? 'erreur' : 'ok';
+if (!err) setTimeout(function() { el.style.display = 'none'; el.className = ''; }, 4000);
+}
+
+function nettoyer(txt) {
+return txt
+.replace(/\u00e9/g, 'e').replace(/\u00e8/g, 'e').replace(/\u00ea/g, 'e').replace(/\u00eb/g, 'e')
+.replace(/\u00e0/g, 'a').replace(/\u00e2/g, 'a').replace(/\u00e4/g, 'a')
+.replace(/\u00f4/g, 'o').replace(/\u00f6/g, 'o')
+.replace(/\u00f9/g, 'u').replace(/\u00fb/g, 'u').replace(/\u00fc/g, 'u')
+.replace(/\u00ee/g, 'i').replace(/\u00ef/g, 'i')
+.replace(/\u00e7/g, 'c')
+.replace(/\u00c9/g, 'E').replace(/\u00c8/g, 'E').replace(/\u00ca/g, 'E')
+.replace(/\u00c0/g, 'A').replace(/\u00c2/g, 'A')
+.replace(/\u00d4/g, 'O').replace(/\u00d6/g, 'O')
+.replace(/\u00db/g, 'U').replace(/\u00dc/g, 'U')
+.replace(/\u00ce/g, 'I')
+.replace(/\u00c7/g, 'C')
+.replace(/\u2014/g, '-').replace(/\u2013/g, '-').replace(/\u2019/g, "'")
+.replace(/\u00ab/g, '"').replace(/\u00bb/g, '"');
+}
+
+function collecterDonnees() {
+var res = {};
+var totalS = 0, maxTh = 0, nbNotes = 0;
+Object.keys(donneesPdf).forEach(function(idSec) {
+res[idSec] = { lignes: [], st: 0, sm: 0 };
+donneesPdf[idSec].forEach(function(item, idx) {
+var id = idSec + '_' + idx;
+var v = document.getElementById('note_' + id).value;
+var rem = document.getElementById('remarque_' + id).value;
+var pond = item[1], mx = 5 * pond;
+maxTh += mx;
+var sc = null, na = '--';
+if (v !== '') { var n = parseInt(v); sc = n * pond; na = n + '/5'; totalS += sc; nbNotes++; res[idSec].st += sc; }
+res[idSec].sm += mx;
+res[idSec].lignes.push({ c: item[0], p: pond, n: na, s: sc === null ? '--' : sc + '/' + mx, sn: sc, sm: mx, r: nettoyer(rem) });
+});
+});
+var pct = maxTh > 0 && nbNotes > 0 ? Math.round((totalS / maxTh) * 100) : 0;
+var rec = '--', app = 'En attente';
+if (nbNotes > 0) {
+if (pct >= 75) { rec = 'Acquisition recommandee'; app = 'Materiel recommande'; }
+else if (pct >= 50) { rec = 'Reserves a lever avant decision'; app = 'Acceptable avec reserves'; }
+else { rec = 'Acquisition non recommandee'; app = 'Non satisfaisant'; }
+}
+return {
+dt: document.getElementById('champDate').value || '',
+ev: nettoyer(document.getElementById('champEvaluateur').value || 'Non renseigne'),
+eq: nettoyer(document.getElementById('champEquipement').value || 'Non renseigne'),
+fa: nettoyer(document.getElementById('champFabricant').value || 'Non renseigne'),
+ca: nettoyer(document.getElementById('champCategorie').value),
+co: nettoyer(document.getElementById('champContexte').value),
+cl: nettoyer(document.getElementById('champConclusion').value || ''),
+sec: res, ts: totalS, tm: maxTh, pct: pct, rec: rec, app: app, nn: nbNotes
+};
+}
+
+function genererPDF() {
+if (typeof window.jspdf === 'undefined') {
+afficherStatut("Librairie PDF non chargee. Verifiez votre connexion internet puis rechargez la page (F5).", true);
+return;
+}
+var btn = document.getElementById('boutonPdf');
+btn.classList.add('chargement');
+try {
+var jsPDF = window.jspdf.jsPDF;
+var doc = new jsPDF('p', 'mm', 'a4');
+var W = doc.internal.pageSize.getWidth();
+var H = doc.internal.pageSize.getHeight();
+var M = 15;
+var U = W - M * 2;
+var d = collecterDonnees();
+
+var R = [196, 30, 58], N = [26, 26, 26], G = [120, 120, 120], V = [45, 138, 78], O = [212, 121, 14];
+function cs(p) { return p >= 75 ? V : p >= 50 ? O : R; }
+
+function pied(n) {
+doc.setDrawColor(210, 210, 210);
+doc.setLineWidth(0.3);
+doc.line(M, H - 12, W - M, H - 12);
+doc.setFontSize(7);
+doc.setTextColor(150, 150, 150);
+doc.setFont('helvetica', 'normal');
+doc.text("SIS Geneve - Compagnie Ambulances - Document d'evaluation interne", M, H - 7);
+doc.text("Page " + n, W - M, H - 7, { align: 'right' });
+}
+
+function saut(h, y) {
+if (y + h > H - 20) { pied(doc.internal.getNumberOfPages()); doc.addPage(); return 16; }
+return y;
+}
+
+function fmtDate(s) { if (!s) return 'Non renseignee'; var p = s.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+
+doc.setFillColor(196, 30, 58);
+doc.rect(M, 10, U, 26, 'F');
+doc.setTextColor(255, 255, 255);
+doc.setFontSize(14);
+doc.setFont('helvetica', 'bold');
+doc.text("GRILLE D'EVALUATION - MATERIEL MEDICAL", M + 6, 23);
+doc.setFontSize(8);
+doc.setFont('helvetica', 'normal');
+doc.text("Compagnie Ambulances - SIS Geneve", M + 6, 31);
+doc.text(fmtDate(d.dt), W - M - 6, 23, { align: 'right' });
+doc.text(d.ev, W - M - 6, 31, { align: 'right' });
+
+var y = 44;
+doc.setFillColor(248, 248, 248);
+doc.setDrawColor(210, 210, 210);
+doc.rect(M, y, U, 28, 'FD');
+doc.setFontSize(6.5);
+doc.setTextColor(120, 120, 120);
+doc.setFont('helvetica', 'bold');
+var c1 = M + 4, c2 = M + U / 2 + 4;
+doc.text("EQUIPEMENT EVALUE", c1, y + 7);
+doc.text("FABRICANT", c2, y + 7);
+doc.text("CATEGORIE", c1, y + 20);
+doc.text("CONTEXTE", c2, y + 20);
+doc.setFont('helvetica', 'normal');
+doc.setFontSize(9);
+doc.setTextColor(26, 26, 26);
+doc.text(d.eq, c1, y + 13);
+doc.text(d.fa, c2, y + 13);
+doc.text(d.ca, c1, y + 26);
+doc.text(d.co, c2, y + 26);
+y += 36;
+
+var cles = Object.keys(donneesPdf);
+for (var si = 0; si < cles.length; si++) {
+var k = cles[si];
+var sd = d.sec[k];
+y = saut(12 + sd.lignes.length * 7, y);
+
+doc.setFillColor(196, 30, 58);
+doc.rect(M, y, U, 7, 'F');
+doc.setTextColor(255, 255, 255);
+doc.setFontSize(8);
+doc.setFont('helvetica', 'bold');
+doc.text(nomsSectionsPdf[k], M + 4, y + 5);
+if (sd.st > 0) {
+var sp = Math.round((sd.st / sd.sm) * 100);
+doc.text(sd.st + "/" + sd.sm + " (" + sp + "%)", W - M - 4, y + 5, { align: 'right' });
+}
+y += 9;
+
+var corps = [];
+for (var li = 0; li < sd.lignes.length; li++) {
+var l = sd.lignes[li];
+corps.push([l.c, String(l.p), l.n, l.s, l.r]);
+}
+
+var secRef = k;
+doc.autoTable({
+startY: y,
+head: [['Critere', 'Pond.', 'Note', 'Score', 'Remarques']],
+body: corps,
+margin: { left: M, right: M },
+theme: 'grid',
+styles: { fontSize: 7.5, cellPadding: 2, lineColor: [220, 220, 220], lineWidth: 0.2, textColor: N, font: 'helvetica' },
+headStyles: { fillColor: [245, 245, 245], textColor: [100, 100, 100], fontStyle: 'bold', fontSize: 6.5 },
+columnStyles: {
+0: { cellWidth: U * 0.34 },
+1: { cellWidth: U * 0.08, halign: 'center' },
+2: { cellWidth: U * 0.10, halign: 'center' },
+3: { cellWidth: U * 0.12, halign: 'center', fontStyle: 'bold' },
+4: { cellWidth: U * 0.36, textColor: [130, 130, 130] }
+},
+didParseCell: function(data) {
+if (data.section === 'body' && data.column.index === 3) {
+var secId = this.secRef;
+if (secId && d.sec[secId]) {
+var lig = d.sec[secId].lignes[data.row.index];
+if (lig && lig.sn !== null) {
+data.cell.styles.textColor = cs((lig.sn / lig.sm) * 100);
+}
+}
+}
+}.bind({ secRef: secRef })
+});
+y = doc.lastAutoTable.finalY + 6;
+}
+
+y = saut(38, y);
+var cb = cs(d.pct);
+doc.setDrawColor(cb[0], cb[1], cb[2]);
+doc.setLineWidth(1);
+doc.setFillColor(250, 250, 250);
+doc.rect(M, y, U, 30, 'FD');
+doc.setLineWidth(0.2);
+
+var b1 = M + U * 0.17, b2 = M + U * 0.50, b3 = M + U * 0.83;
+doc.setFontSize(6.5);
+doc.setTextColor(120, 120, 120);
+doc.setFont('helvetica', 'bold');
+doc.text("SCORE TOTAL", b1, y + 7, { align: 'center' });
+doc.text("POURCENTAGE", b2, y + 7, { align: 'center' });
+doc.text("RECOMMANDATION", b3, y + 7, { align: 'center' });
+
+doc.setFontSize(18);
+doc.setFont('helvetica', 'bold');
+doc.setTextColor(26, 26, 26);
+doc.text(d.nn > 0 ? d.ts + " / " + d.tm : "--", b1, y + 19, { align: 'center' });
+doc.setTextColor(cb[0], cb[1], cb[2]);
+doc.text(d.nn > 0 ? d.pct + " %" : "-- %", b2, y + 19, { align: 'center' });
+doc.setFontSize(9);
+doc.text(d.rec, b3, y + 17, { align: 'center' });
+doc.setFontSize(7);
+doc.setTextColor(120, 120, 120);
+doc.setFont('helvetica', 'normal');
+doc.text(d.app, b2, y + 26, { align: 'center' });
+
+y += 38;
+doc.setFontSize(6.5);
+doc.setTextColor(120, 120, 120);
+doc.setFillColor(45, 138, 78); doc.circle(M + 3, y, 1.5, 'F'); doc.text(">= 75% - Recommande", M + 7, y + 1);
+doc.setFillColor(212, 121, 14); doc.circle(M + 55, y, 1.5, 'F'); doc.text("50-74% - Acceptable avec reserves", M + 59, y + 1);
+doc.setFillColor(196, 30, 58); doc.circle(M + 125, y, 1.5, 'F'); doc.text("< 50% - Non recommande", M + 129, y + 1);
+y += 10;
+
+if (d.cl.trim() !== '') {
+y = saut(25, y);
+doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 26, 26);
+doc.text("CONCLUSION ET RECOMMANDATION", M, y);
+y += 3;
+doc.setDrawColor(196, 30, 58); doc.setLineWidth(0.6); doc.line(M, y, M + 45, y); doc.setLineWidth(0.2);
+y += 5;
+doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(50, 50, 50);
+var lc = doc.splitTextToSize(d.cl, U - 8);
+for (var i = 0; i < lc.length; i++) { y = saut(6, y); doc.text(lc[i], M + 4, y); y += 4.5; }
+}
+
+var np = doc.internal.getNumberOfPages();
+for (var p = 1; p <= np; p++) { doc.setPage(p); pied(p); }
+
+var nom = 'Evaluation_';
+if (d.eq !== 'Non renseigne') nom += d.eq.replace(/[^a-zA-Z0-9\s\-]/g, '').replace(/\s+/g, '_').substring(0, 30) + '_';
+var aj = new Date();
+nom += String(aj.getDate()).padStart(2, '0') + '-' + String(aj.getMonth() + 1).padStart(2, '0') + '-' + aj.getFullYear() + '.pdf';
+doc.save(nom);
+afficherStatut("PDF telecharge.", false);
+
+} catch (e) {
+afficherStatut("Erreur : " + e.message, true);
+console.error("Erreur PDF:", e);
+}
+btn.classList.remove('chargement');
+}
+
+var libChargee = false;
+function chargerScript(url) {
+return new Promise(function(ok, ko) {
+var s = document.createElement('script'); s.src = url; s.onload = ok; s.onerror = ko; document.head.appendChild(s);
+});
+}
+(function() {
+chargerScript('https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js')
+.then(function() { return chargerScript('https://unpkg.com/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js'); })
+.then(function() { libChargee = true; })
+.catch(function() {
+chargerScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+.then(function() { return chargerScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js'); })
+.then(function() { libChargee = true; })
+.catch(function() {
+document.getElementById('statutPdf').textContent = "Impossible de charger la librairie PDF. Verifiez votre connexion internet.";
+document.getElementById('statutPdf').className = 'erreur';
+});
+});
+})();
+
+creerLignes();
+</script>
+</body>
+</html>

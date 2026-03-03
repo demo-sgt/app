@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qualité Transversale — Avant / Pendant / Après</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+--rouge: #C41E3A;
+--rouge-fonce: #8B1525;
+--bleu: #1e40af;
+--vert: #166534;
+--orange: #c2410c;
+--noir: #1a1a1a;
+--gris: #6b7280;
+--fond: #f8f7f4;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--fond); color: var(--noir); padding: 32px; }
+.page { max-width: 1100px; margin: 0 auto; }
+.titre-principal {
+text-align: center;
+margin-bottom: 40px;
+}
+.titre-principal h1 {
+font-family: 'Playfair Display', serif;
+font-size: 2rem;
+color: var(--rouge);
+margin-bottom: 8px;
+}
+.titre-principal p { color: var(--gris); font-size: 0.9rem; }
+.schema-container {
+position: relative;
+display: flex;
+justify-content: center;
+align-items: stretch;
+gap: 0;
+margin-bottom: 40px;
+}
+.phase {
+flex: 1;
+padding: 28px 24px;
+border-radius: 16px;
+position: relative;
+min-height: 420px;
+}
+.phase-avant {
+background: linear-gradient(180deg, #eff6ff, #dbeafe);
+border: 2px solid #93c5fd;
+border-radius: 16px 0 0 16px;
+}
+.phase-pendant {
+background: linear-gradient(180deg, #fef3c7, #fde68a);
+border-top: 2px solid #fbbf24;
+border-bottom: 2px solid #fbbf24;
+z-index: 1;
+}
+.phase-apres {
+background: linear-gradient(180deg, #dcfce7, #bbf7d0);
+border: 2px solid #86efac;
+border-radius: 0 16px 16px 0;
+}
+.phase-titre {
+text-align: center;
+margin-bottom: 20px;
+}
+.phase-icone {
+font-size: 2.2rem;
+margin-bottom: 8px;
+display: block;
+}
+.phase-nom {
+font-size: 1.1rem;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+.phase-avant .phase-nom { color: var(--bleu); }
+.phase-pendant .phase-nom { color: var(--orange); }
+.phase-apres .phase-nom { color: var(--vert); }
+.phase-sous-titre {
+font-size: 0.75rem;
+color: var(--gris);
+text-align: center;
+margin-bottom: 16px;
+font-style: italic;
+}
+.element {
+background: rgba(255,255,255,0.8);
+border-radius: 10px;
+padding: 12px 16px;
+margin-bottom: 10px;
+backdrop-filter: blur(4px);
+}
+.element-titre {
+font-weight: 700;
+font-size: 0.82rem;
+margin-bottom: 4px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.element-desc {
+font-size: 0.75rem;
+color: var(--gris);
+line-height: 1.4;
+}
+.fleche-container {
+display: flex;
+justify-content: center;
+align-items: center;
+position: relative;
+margin: -10px 0 30px;
+}
+.fleche-boucle {
+width: 90%;
+height: 60px;
+position: relative;
+}
+.fleche-boucle svg { width: 100%; height: 100%; }
+.boucle-texte {
+text-align: center;
+margin-top: 8px;
+}
+.boucle-label {
+display: inline-block;
+background: var(--rouge);
+color: white;
+font-size: 0.75rem;
+font-weight: 700;
+padding: 6px 20px;
+border-radius: 20px;
+letter-spacing: 0.5px;
+}
+.retro-fleches {
+display: flex;
+justify-content: space-between;
+margin: 0 5%;
+}
+.retro-item {
+text-align: center;
+max-width: 220px;
+}
+.retro-fleche-icone { font-size: 1.4rem; margin-bottom: 4px; }
+.retro-texte { font-size: 0.72rem; color: var(--gris); line-height: 1.3; }
+.retro-texte strong { color: var(--noir); }
+.fleche-retour-svg {
+width: 100%;
+margin: 16px 0 8px;
+}
+.legende-bas {
+background: white;
+border-radius: 12px;
+padding: 20px 28px;
+box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+margin-top: 24px;
+text-align: center;
+}
+.legende-bas p { font-size: 0.8rem; color: var(--gris); line-height: 1.6; }
+.legende-bas strong { color: var(--rouge); }
+@media print {
+body { padding: 12px; }
+.page { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="titre-principal">
+<h1>Concept de Qualité Transversale</h1>
+<p>Compagnie Ambulances — SIS Genève — Cycle continu d'amélioration</p>
+</div>
+
+<div class="schema-container">
+<div class="phase phase-avant">
+<div class="phase-titre">
+<span class="phase-icone">📋</span>
+<div class="phase-nom">Avant</div>
+</div>
+<div class="phase-sous-titre">Préparation & Prévention</div>
+<div class="element">
+<div class="element-titre">🎓 Formation continue</div>
+<div class="element-desc">3 séances/an + micro-learning. Thèmes orientés par les résultats qualité.</div>
+</div>
+<div class="element">
+<div class="element-titre">🫀 Entraînement gestes techniques</div>
+<div class="element-desc">Simulation RCP, gestion voies aériennes, accès vasculaires. Maintien des compétences.</div>
+</div>
+<div class="element">
+<div class="element-titre">⏱️ Délai de départ</div>
+<div class="element-desc">Organisation du poste, préparation du matériel, réactivité à l'alerte. Objectif : &lt; 90 sec.</div>
+</div>
+<div class="element">
+<div class="element-titre">🔧 Contrôle matériel</div>
+<div class="element-desc">Vérification quotidienne, suivi des péremptions, disponibilité opérationnelle.</div>
+</div>
+<div class="element">
+<div class="element-titre">📖 Protocoles à jour</div>
+<div class="element-desc">Accès rapide aux protocoles actualisés. Veille sur les évolutions des guidelines.</div>
+</div>
+</div>
+
+<div class="phase phase-pendant">
+<div class="phase-titre">
+<span class="phase-icone">🚑</span>
+<div class="phase-nom">Pendant</div>
+</div>
+<div class="phase-sous-titre">Intervention & Performance</div>
+<div class="element">
+<div class="element-titre">🧠 Aide à la décision</div>
+<div class="element-desc">App Ambulance : RCP, calcul médicamenteux, orientation destination. Support en temps réel.</div>
+</div>
+<div class="element">
+<div class="element-titre">📊 Objectifs par pathologie</div>
+<div class="element-desc">AVC : &lt; 60 min total | Réa : FCT &gt; 80% | Trauma : &lt; 10 min sur scène | Douleur : EVA documentée</div>
+</div>
+<div class="element">
+<div class="element-titre">📝 Documentation FIP</div>
+<div class="element-desc">Remplissage complet en temps réel : horaires, paramètres, traitements, scores cliniques.</div>
+</div>
+<div class="element">
+<div class="element-titre">📡 Transmission SMUR</div>
+<div class="element-desc">Pré-alerte structurée avec données cliniques clés. Continuité de la prise en charge.</div>
+</div>
+<div class="element">
+<div class="element-titre">👥 Coordination équipe</div>
+<div class="element-desc">CRM (Crew Resource Management), communication structurée, répartition des rôles.</div>
+</div>
+</div>
+
+<div class="phase phase-apres">
+<div class="phase-titre">
+<span class="phase-icone">📈</span>
+<div class="phase-nom">Après</div>
+</div>
+<div class="phase-sous-titre">Analyse & Amélioration</div>
+<div class="element">
+<div class="element-titre">📉 Indicateurs qualité</div>
+<div class="element-desc">Monitorage AVC, douleur, réanimation, trauma, sepsis. Dashboard automatisé.</div>
+</div>
+<div class="element">
+<div class="element-titre">🔍 Analyse des FIP</div>
+<div class="element-desc">Extraction automatisée des données. Identification des écarts par rapport aux objectifs.</div>
+</div>
+<div class="element">
+<div class="element-titre">🔄 Revues de cas</div>
+<div class="element-desc">Analyse des interventions complexes. Approche non-punitive, apprentissage collectif.</div>
+</div>
+<div class="element">
+<div class="element-titre">💡 Axes d'amélioration</div>
+<div class="element-desc">Recommandations concrètes : ajuster la formation, modifier un protocole, changer un matériel.</div>
+</div>
+<div class="element">
+<div class="element-titre">🤝 Soutien aux pairs</div>
+<div class="element-desc">Débriefing psychologique post-intervention. Bien-être des intervenants = qualité durable.</div>
+</div>
+</div>
+</div>
+
+<svg class="fleche-retour-svg" viewBox="0 0 1000 80" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="flecheRouge" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+<polygon points="0 0, 10 3.5, 0 7" fill="#C41E3A" />
+</marker>
+<marker id="flecheRougeInverse" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+<polygon points="10 0, 0 3.5, 10 7" fill="#C41E3A" />
+</marker>
+</defs>
+<path d="M 850 5 C 900 5, 950 40, 900 60 L 100 60 C 50 60, 50 40, 100 5" fill="none" stroke="#C41E3A" stroke-width="2.5" stroke-dasharray="8,4" marker-start="url(#flecheRougeInverse)"/>
+<text x="500" y="48" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="13" font-weight="700" fill="#C41E3A">BOUCLE D'AMÉLIORATION CONTINUE</text>
+<text x="500" y="65" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="10" fill="#888">Les résultats de l'APRÈS alimentent la formation et le matériel de l'AVANT</text>
+</svg>
+
+<div class="retro-fleches">
+<div class="retro-item">
+<div class="retro-fleche-icone">🔄</div>
+<div class="retro-texte"><strong>Ajustement formation</strong><br>Les lacunes identifiées en analyse deviennent les thèmes prioritaires de formation</div>
+</div>
+<div class="retro-item">
+<div class="retro-fleche-icone">🔧</div>
+<div class="retro-texte"><strong>Évolution matériel</strong><br>Les difficultés terrain orientent les choix d'acquisition et la veille technologique</div>
+</div>
+<div class="retro-item">
+<div class="retro-fleche-icone">📋</div>
+<div class="retro-texte"><strong>Mise à jour protocoles</strong><br>Les données d'intervention valident ou remettent en question les procédures en place</div>
+</div>
+</div>
+
+<div class="legende-bas">
+<p>La qualité n'est pas une étape isolée mais un <strong>cycle continu</strong> où chaque phase nourrit les autres.<br>
+L'objectif est de créer un système auto-apprenant : les données du terrain orientent la formation, la formation améliore les pratiques, les pratiques génèrent de meilleures données.</p>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Qualité — Compagnie Ambulances SIS Genève</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--rouge:#C41E3A;--rouge-f:#8B1525;--rouge-clair:#FEF2F2;--vert:#16a34a;--vert-c:#F0FDF4;--orange:#ea580c;--orange-c:#FFF7ED;--noir:#1a1a2e;--blanc:#ffffff;--carte:#ffffff;--bord:#e5e7eb;--texte:#1f2937;--gris:#6b7280;--gris-c:#f8f9fa;--fond:#f0f2f5;--ombre:0 2px 12px rgba(0,0,0,.06);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--fond);color:var(--texte);min-height:100vh;}
+.barre-nav{display:flex;align-items:center;padding:16px 32px;background:var(--noir);position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.barre-nav h1{font-family:'Playfair Display',serif;font-size:1.3rem;color:white;flex:1;}
+.onglets{display:flex;gap:4px;}
+.onglet{padding:8px 20px;border-radius:8px;border:none;font-family:inherit;font-weight:600;font-size:.8rem;cursor:pointer;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.onglet:hover{color:white;background:rgba(255,255,255,.08);}
+.onglet.actif{background:var(--rouge);color:white;}
+.contenu{padding:24px 32px;max-width:1500px;margin:0 auto;}
+.panneau{display:none;}.panneau.visible{display:block;}
+.zone-import{background:var(--carte);border:2px solid var(--bord);border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;box-shadow:var(--ombre);transition:border-color .3s;}
+.zone-import.charge{border-color:var(--vert);}.zone-import.erreur{border-color:var(--orange);border-style:dashed;}
+.import-texte{flex:1;}.import-texte h3{font-size:.82rem;color:var(--texte);margin-bottom:2px;}.import-texte p{font-size:.72rem;color:var(--gris);}
+.import-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.btn{padding:7px 16px;border-radius:8px;border:none;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;transition:all .2s;}
+.btn-rouge{background:var(--rouge);color:white;}.btn-rouge:hover{background:var(--rouge-f);}
+.btn-gris{background:var(--gris-c);color:var(--gris);border:1px solid var(--bord);}.btn-gris:hover{background:#e5e7eb;color:var(--texte);}
+.statut{font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--gris);max-width:250px;text-align:right;}
+.statut-ok{color:var(--vert);}.statut-err{color:var(--orange);}
+#selecteurFichier{display:none;}
+.infos-periode{display:flex;gap:8px;align-items:center;margin-bottom:20px;font-size:.78rem;color:var(--gris);flex-wrap:wrap;}
+.infos-periode strong{color:var(--texte);}
+.infos-badge{background:var(--carte);border:1px solid var(--bord);border-radius:8px;padding:6px 14px;box-shadow:var(--ombre);}
+.resume{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.resume-c{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--ombre);}
+.resume-v{font-size:1.8rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.resume-l{font-size:.68rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.filtres{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.filtre-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--bord);background:var(--blanc);color:var(--gris);font-family:inherit;font-size:.75rem;cursor:pointer;transition:all .2s;}
+.filtre-btn:hover,.filtre-btn.actif{background:var(--rouge);border-color:var(--rouge);color:white;}
+.grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.carte{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:18px 20px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;box-shadow:var(--ombre);}
+.carte:hover{transform:translateY(-2px);border-color:var(--rouge);box-shadow:0 4px 20px rgba(196,30,58,.12);}
+.carte-entete{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.carte-titre{font-size:.8rem;font-weight:700;color:var(--texte);flex:1;margin-right:8px;line-height:1.3;}
+.carte-cat{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.cat-avc{background:rgba(109,40,217,.1);color:#7c3aed;}.cat-douleur{background:rgba(202,138,4,.1);color:#b45309;}
+.cat-rea{background:rgba(220,38,38,.1);color:#dc2626;}.cat-trauma{background:rgba(14,165,233,.1);color:#0284c7;}
+.cat-sepsis{background:rgba(34,197,94,.1);color:#16a34a;}.cat-general{background:rgba(107,114,128,.1);color:#6b7280;}
+.donnees-ligne{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.d-valeur{font-size:1.4rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.d-objectif{font-size:.72rem;color:var(--gris);}
+.d-icone{font-size:.75rem;margin-left:4px;}
+.d-nb{font-size:.64rem;color:var(--gris);margin-bottom:6px;}
+.barre-f{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;}
+.barre-r{height:100%;border-radius:3px;transition:width .8s ease-out;}
+.sans-donnees{padding:12px;background:var(--gris-c);border-radius:8px;text-align:center;color:var(--gris);font-size:.75rem;font-style:italic;}
+.c-vert{color:var(--vert);}.c-orange{color:var(--orange);}.c-rouge{color:var(--rouge);}
+.f-vert{background:var(--vert);}.f-orange{background:var(--orange);}.f-rouge{background:var(--rouge);}
+.modal-fond{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;justify-content:center;align-items:center;padding:24px;backdrop-filter:blur(4px);}
+.modal-fond.ouvert{display:flex;}
+.modal{background:var(--carte);border:1px solid var(--bord);border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:32px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.15);}
+.modal-fermer{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--gris);font-size:1.4rem;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-fermer:hover{background:var(--gris-c);color:var(--texte);}
+.modal-cat{display:inline-block;margin-bottom:12px;}
+.modal-titre{font-size:1.2rem;font-weight:700;color:var(--texte);margin-bottom:16px;padding-right:40px;}
+.modal-donnees{background:var(--gris-c);border-radius:12px;padding:20px;margin-bottom:20px;}
+.modal-val{font-size:2.2rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
+.modal-obj{font-size:.82rem;color:var(--gris);margin-bottom:4px;}
+.modal-nb{font-size:.72rem;color:var(--gris);margin-bottom:10px;}
+.modal-barre{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;}
+.modal-barre-r{height:100%;border-radius:5px;transition:width .8s ease-out;}
+.modal-section{margin-bottom:16px;}
+.modal-section-titre{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--rouge);margin-bottom:8px;}
+.modal-section-texte{font-size:.85rem;color:var(--texte);line-height:1.6;}
+.modal-impact{background:var(--rouge-clair);border-radius:10px;padding:16px;border-left:3px solid var(--rouge);}
+.p-param{max-width:900px;}
+.verrou{background:var(--carte);border:1px solid var(--bord);border-radius:16px;padding:40px;text-align:center;max-width:400px;margin:60px auto;box-shadow:var(--ombre);}
+.verrou h2{font-size:1.1rem;color:var(--texte);margin-bottom:16px;}
+.verrou p{font-size:.8rem;color:var(--gris);margin-bottom:20px;}
+.verrou input{width:200px;background:var(--gris-c);border:1px solid var(--bord);border-radius:8px;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:1rem;text-align:center;color:var(--texte);letter-spacing:8px;}
+.verrou input:focus{outline:none;border-color:var(--rouge);}
+.verrou-err{color:var(--rouge);font-size:.75rem;margin-top:8px;display:none;}
+.editeur{display:none;}.editeur.visible{display:block;}
+.editeur-liste{display:flex;flex-direction:column;gap:12px;}
+.editeur-item{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:16px 20px;box-shadow:var(--ombre);}
+.editeur-item:hover{border-color:var(--rouge);}
+.editeur-entete{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.editeur-nom{font-size:.85rem;font-weight:700;color:var(--texte);}
+.editeur-champs{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.editeur-champ{display:flex;flex-direction:column;gap:3px;}.editeur-champ.large{grid-column:1/-1;}
+.editeur-label{font-size:.65rem;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:.3px;}
+.editeur-input{background:var(--gris-c);border:1px solid var(--bord);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:.82rem;color:var(--texte);resize:vertical;}
+.editeur-input:focus{outline:none;border-color:var(--rouge);}
+textarea.editeur-input{min-height:60px;}
+.editeur-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+.btn-sauver{background:var(--vert);color:white;padding:10px 28px;border-radius:8px;border:none;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;}.btn-sauver:hover{opacity:.85;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--vert);color:white;padding:12px 28px;border-radius:10px;font-weight:600;font-size:.85rem;opacity:0;transition:all .3s;z-index:200;pointer-events:none;}
+.toast.visible{opacity:1;transform:translateX(-50%) translateY(0);}
+.note-bas{margin-top:24px;padding:14px 20px;background:var(--carte);border:1px solid var(--bord);border-radius:12px;font-size:.75rem;color:var(--gris);line-height:1.5;box-shadow:var(--ombre);}
+.note-bas strong{color:var(--texte);}.note-bas code{background:var(--gris-c);padding:2px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.7rem;}
+@media(max-width:768px){.resume{grid-template-columns:repeat(2,1fr);}.grille{grid-template-columns:1fr;}.barre-nav{flex-direction:column;gap:10px;padding:12px 16px;}.contenu{padding:16px;}.zone-import{flex-direction:column;}.modal{padding:20px;}}
+@media print{.carte{break-inside:avoid;}.barre-nav,.zone-import,.filtres,.note-bas{display:none;}}
+</style>
+</head>
+<body>
+<div class="barre-nav">
+<h1>Dashboard Qualité Préhospitalier — SIS Genève</h1>
+<div class="onglets">
+<button class="onglet actif" onclick="changerOnglet('dashboard',this)">Dashboard</button>
+<button class="onglet" onclick="changerOnglet('parametres',this)">Paramètres</button>
+</div>
+</div>
+<div class="contenu">
+<div class="panneau visible" id="panDashboard">
+<div class="zone-import" id="zoneImport">
+<span style="font-size:1.4rem">📊</span>
+<div class="import-texte"><h3>Source : Extraction_Attrib.xlsx</h3><p>Base de données unifiée — chargement automatique depuis le même dossier.</p></div>
+<div class="import-actions">
+<span class="statut" id="statutFichier">Chargement…</span>
+<input type="file" id="selecteurFichier" accept=".xlsx,.xls">
+<button class="btn btn-rouge" onclick="document.getElementById('selecteurFichier').click()">Charger</button>
+<button class="btn btn-gris" onclick="reinitialiser()">Reset</button>
+</div>
+</div>
+<div class="infos-periode" id="infoPeriode"></div>
+<div class="resume" id="zoneResume"></div>
+<div class="filtres" id="zoneFiltres"></div>
+<div class="grille" id="grilleCartes"></div>
+<div class="note-bas">
+<strong>Architecture :</strong> Le fichier <code>Extraction_Attrib.xlsx</code> est la base de données unifiée (activité + qualité).<br>
+<strong>Serveur local :</strong> <code>python -m http.server 8000</code>
+</div>
+</div>
+<div class="panneau p-param" id="panParametres">
+<div class="verrou" id="verrou">
+<h2>🔒 Accès protégé</h2><p>Entrez le mot de passe pour modifier les indicateurs.</p>
+<input type="password" id="champMdp" maxlength="10" placeholder="••••" onkeyup="if(event.key==='Enter')verifierMdp()">
+<div class="verrou-err" id="errMdp">Mot de passe incorrect</div><br><br>
+<button class="btn btn-rouge" onclick="verifierMdp()">Déverrouiller</button>
+</div>
+<div class="editeur" id="editeur"></div>
+</div>
+</div>
+<div class="modal-fond" id="modalFond" onclick="if(event.target===this)fermerModal()"><div class="modal" id="modalContenu"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+var NOM_FICHIER="Extraction_Attrib.xlsx",MDP="1234",CLE_STOCKAGE="dashboard_qualite_indicateurs_v5";
+var indicateurs={
+"Délai alerte → contact patient":{categorie:"AVC",catClasse:"cat-avc",inverse:true,objectif:15,unite:"min",colonne:"delai_alerte_contact_min",filtreCat:"AVC",methode:"moyenne",description:"Temps entre la réception de l'alerte et le premier contact avec le patient suspect d'AVC.",impact:"Chaque minute perdue = 1.9 million de neurones détruits. Un délai réduit augmente l'éligibilité à la thrombolyse (fenêtre < 4h30)."},
+"Score G-FAST documenté":{categorie:"AVC",catClasse:"cat-avc",inverse:false,objectif:90,unite:"%",colonne:"nihss_documente",filtreCat:"AVC",methode:"taux_oui",description:"Pourcentage d'interventions AVC où un score G-FAST (de 0 à 4) est documenté sur la FIP. Évalue : Gaze, Face, Arm, Speech.",impact:"Le pré-alerte avec G-FAST réduit le délai door-to-needle de 15-20 min. L'équipe neurovasculaire prépare la thrombolyse avant l'arrivée."},
+"Délai total alerte → filière AVC":{categorie:"AVC",catClasse:"cat-avc",inverse:true,objectif:60,unite:"min",colonne:"delai_alerte_stroke_min",filtreCat:"AVC",methode:"moyenne",description:"Temps total entre l'alerte et l'arrivée du patient dans la filière AVC du centre de référence (HUG).",impact:"La thrombolyse dans les 60 premières minutes a un taux de succès 2x supérieur."},
+"Évaluation douleur (EVA/EN) documentée":{categorie:"Douleur",catClasse:"cat-douleur",inverse:false,objectif:95,unite:"%",colonne:"evaluation_douleur",filtreCat:"Douleur",methode:"taux_oui",description:"Pourcentage d'interventions avec douleur où une échelle validée (EVA, EN, FLACC) est documentée.",impact:"Sans évaluation initiale, impossible de mesurer l'efficacité du traitement."},
+"Réévaluation post-traitement":{categorie:"Douleur",catClasse:"cat-douleur",inverse:false,objectif:85,unite:"%",colonne:"reevaluation_post_traitement",filtreCat:"Douleur",methode:"taux_oui",description:"Pourcentage de patients ayant reçu un antalgique avec réévaluation post-administration.",impact:"La réévaluation permet l'ajustement thérapeutique et démontre une PEC centrée sur le patient."},
+"Réduction douleur ≥ 2 pts EN":{categorie:"Douleur",catClasse:"cat-douleur",inverse:false,objectif:70,unite:"%",colonne:"reduction_douleur_2pts",filtreCat:"Douleur",methode:"taux_oui",description:"Pourcentage de patients avec réduction ≥ 2 points sur l'échelle numérique.",impact:"2 points = seuil cliniquement significatif."},
+"Fraction de compression (CCF)":{categorie:"Réanimation",catClasse:"cat-rea",inverse:false,objectif:80,unite:"%",colonne:"fct_pourcent",filtreCat:"Réanimation",methode:"moyenne",description:"Chest Compression Fraction — pourcentage du temps de réanimation avec compressions effectives.",impact:"CCF > 80% double les chances de ROSC."},
+"Délai premier choc (rythme choquable)":{categorie:"Réanimation",catClasse:"cat-rea",inverse:true,objectif:120,unite:"sec",colonne:"delai_premier_choc_sec",filtreCat:"Réanimation",methode:"moyenne",description:"Temps entre l'arrivée et le premier choc en cas de FV/TV sans pouls.",impact:"Chaque minute sans défibrillation réduit la survie de 7-10%."},
+"Fréquence compressions 100-120/min":{categorie:"Réanimation",catClasse:"cat-rea",inverse:false,objectif:85,unite:"%",colonne:"frequence_compressions_conforme",filtreCat:"Réanimation",methode:"taux_oui",description:"Pourcentage du temps de RCP dans la cible 100-120/min.",impact:"< 100 : débit insuffisant. > 120 : remplissage réduit."},
+"Profondeur compressions 5-6cm":{categorie:"Réanimation",catClasse:"cat-rea",inverse:false,objectif:80,unite:"%",colonne:"profondeur_compressions_conforme",filtreCat:"Réanimation",methode:"taux_oui",description:"Pourcentage du temps de RCP dans la cible 5-6 cm.",impact:"Trop superficiel : débit insuffisant. Trop profond : lésions thoraciques."},
+"ROSC préhospitalier":{categorie:"Réanimation",catClasse:"cat-rea",inverse:false,objectif:30,unite:"%",colonne:"rosc_obtenu",filtreCat:"Réanimation",methode:"taux_oui",description:"Taux de ROSC obtenu en phase préhospitalière.",impact:"Indicateur principal de la chaîne de survie."},
+"Temps sur scène (trauma majeur)":{categorie:"Trauma",catClasse:"cat-trauma",inverse:true,objectif:10,unite:"min",colonne:"temps_scene_min",filtreCat:"Trauma",methode:"moyenne",description:"Durée sur les lieux pour les traumas majeurs. Objectif : scoop and run.",impact:"Chaque minute > 10 min augmente la mortalité de 1-2%."},
+"Immobilisation rachidienne conforme":{categorie:"Trauma",catClasse:"cat-trauma",inverse:false,objectif:90,unite:"%",colonne:"immobilisation_conforme",filtreCat:"Trauma",methode:"taux_oui",description:"Pourcentage d'immobilisations conformes au protocole.",impact:"Inadéquate : risque médullaire. Non justifiée : retard de PEC."},
+"Pré-alerte trauma center réalisée":{categorie:"Trauma",catClasse:"cat-trauma",inverse:false,objectif:95,unite:"%",colonne:"prealerte_trauma",filtreCat:"Trauma",methode:"taux_oui",description:"Pourcentage de pré-alertes structurées transmises.",impact:"Réduit le délai hospitalier de 10-15 minutes."},
+"Reconnaissance sepsis (qSOFA ≥ 2)":{categorie:"Sepsis",catClasse:"cat-sepsis",inverse:false,objectif:75,unite:"%",colonne:"reconnaissance_sepsis",filtreCat:"Sepsis",methode:"taux_oui",description:"Pourcentage de sepsis identifiés et documentés avec pré-alerte.",impact:"Chaque heure de retard d'antibiothérapie = +7.6% mortalité."},
+"VVP + remplissage précoce":{categorie:"Sepsis",catClasse:"cat-sepsis",inverse:false,objectif:80,unite:"%",colonne:"vvp_remplissage_precoce",filtreCat:"Sepsis",methode:"taux_oui",description:"Pourcentage de patients sepsis avec VVP et remplissage vasculaire préhospitalier.",impact:"Le remplissage précoce améliore la perfusion tissulaire."},
+"FIP complète (champs obligatoires)":{categorie:"Général",catClasse:"cat-general",inverse:false,objectif:90,unite:"%",colonne:"fip_complete",filtreCat:null,methode:"taux_oui",description:"Pourcentage de FIP avec tous les champs obligatoires remplis.",impact:"FIP incomplète = continuité des soins compromise, problème médico-légal."},
+"Délai de départ post-alerte":{categorie:"Général",catClasse:"cat-general",inverse:true,objectif:90,unite:"sec",colonne:"delai_depart_sec",filtreCat:null,methode:"moyenne",description:"Temps entre l'alerte et le départ effectif du véhicule.",impact:"Seul segment entièrement contrôlable par l'équipage."},
+"Transmission structurée SMUR":{categorie:"Général",catClasse:"cat-general",inverse:false,objectif:85,unite:"%",colonne:"transmission_structuree",filtreCat:null,methode:"taux_oui",description:"Pourcentage de transmissions suivant un format ISOBAR ou SBAR.",impact:"Format standardisé = -30% d'erreurs de communication."},
+"Paramètres vitaux complets":{categorie:"Général",catClasse:"cat-general",inverse:false,objectif:95,unite:"%",colonne:"parametres_vitaux_complets",filtreCat:null,methode:"taux_oui",description:"Pourcentage d'interventions avec FC, TA, FR, SpO2, GCS, T° documentés.",impact:"Paramètres incomplets = évaluation de gravité impossible."}
+};
+var interventions=[],filtreActif='tous',deverrouille=false,colonnesMap={};
+function chargerModifs(){try{var s=localStorage.getItem(CLE_STOCKAGE);if(s){var m=JSON.parse(s);for(var c in m)if(indicateurs[c])Object.assign(indicateurs[c],m[c]);}}catch(e){}}
+function sauverModifs(){var m={};for(var c in indicateurs)m[c]={objectif:indicateurs[c].objectif,description:indicateurs[c].description,impact:indicateurs[c].impact};localStorage.setItem(CLE_STOCKAGE,JSON.stringify(m));}
+chargerModifs();
+function normaliser(t){return(t||"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
+function trouverColonnes(entetes){var map={},norm=entetes.map(function(e){return normaliser(String(e));});for(var c in indicateurs){var idx=norm.indexOf(normaliser(indicateurs[c].colonne));if(idx>=0)map[indicateurs[c].colonne]=idx;}var iCat=norm.findIndex(function(h){return h.includes("categorie");});if(iCat>=0)map["_categorie"]=iCat;return map;}
+function calculerIndicateur(cle){
+var ind=indicateurs[cle],ci=colonnesMap[ind.colonne];if(ci===undefined)return null;
+var lf;if(ind.filtreCat){var ic=colonnesMap["_categorie"];lf=interventions.filter(function(l){return String(l[ic]).trim()===ind.filtreCat;});}else lf=interventions;
+if(!lf.length)return null;
+if(ind.methode==="moyenne"){var v=lf.map(function(l){return parseFloat(l[ci]);}).filter(function(x){return!isNaN(x)&&x!==0;});if(!v.length)return null;var m=v.reduce(function(a,b){return a+b;},0)/v.length;return{valeur:ind.unite==="min"?Math.round(m*10)/10:Math.round(m),nb:v.length,nbCat:lf.length};}
+if(ind.methode==="taux_oui"){var v2=lf.map(function(l){return String(l[ci]).trim();}).filter(function(x){return x==="Oui"||x==="Non";});if(!v2.length)return null;var o=v2.filter(function(x){return x==="Oui";}).length;return{valeur:Math.round(o/v2.length*100),nb:v2.length,nbCat:lf.length};}
+return null;}
+function statut(v,o,inv){var r=inv?(v<=o?1:o/v):v/o;return r>=1?"vert":r>=.85?"orange":"rouge";}
+function pct(v,o,inv){return inv?(v<=o?100:Math.max(0,Math.min(100,(o/v)*100))):Math.max(0,Math.min(100,(v/o)*100));}
+function construire(){
+var g=document.getElementById('grilleCartes');g.innerHTML='';
+var cles=Object.keys(indicateurs),cf=cles.filter(function(c){return filtreActif==='tous'||indicateurs[c].categorie===filtreActif;});
+var nA=0,nP=0,nR=0,res={};
+cles.forEach(function(c){if(interventions.length)res[c]=calculerIndicateur(c);});
+var cats={};cles.forEach(function(c){var ct=indicateurs[c].categorie;cats[ct]=(cats[ct]||0)+1;});
+var fh='<button class="filtre-btn'+(filtreActif==='tous'?' actif':'')+'" onclick="filtrer(\'tous\')">Tous <span style="opacity:.6;font-size:.65rem">'+cles.length+'</span></button>';
+["AVC","Douleur","Réanimation","Trauma","Sepsis","Général"].forEach(function(c){fh+='<button class="filtre-btn'+(filtreActif===c?' actif':'')+'" onclick="filtrer(\''+c+'\')">'+c+' <span style="opacity:.6;font-size:.65rem">'+(cats[c]||0)+'</span></button>';});
+document.getElementById('zoneFiltres').innerHTML=fh;
+cf.forEach(function(cle){
+var ind=indicateurs[cle],r=res[cle],carte=document.createElement('div');carte.className='carte';
+carte.onclick=function(){ouvrirModal(cle,r);};
+var bd='';
+if(r){var st=statut(r.valeur,ind.objectif,ind.inverse),pc=pct(r.valeur,ind.objectif,ind.inverse);
+var ic=st==='vert'?'✓':st==='orange'?'⚠':'✗';
+if(st==='vert')nA++;else if(st==='orange')nP++;else nR++;
+var txtNb=ind.filtreCat?r.nb+' interventions '+ind.filtreCat:r.nb+' interventions';
+bd='<div class="donnees-ligne"><div class="d-valeur c-'+st+'">'+r.valeur+' '+ind.unite+' <span class="d-icone">'+ic+'</span></div><div class="d-objectif">Obj: '+ind.objectif+' '+ind.unite+'</div></div><div class="d-nb">'+txtNb+'</div><div class="barre-f"><div class="barre-r f-'+st+'" style="width:0%" data-cible="'+Math.round(pc)+'"></div></div>';}
+else bd='<div class="sans-donnees">En attente de données</div>';
+carte.innerHTML='<div class="carte-entete"><div class="carte-titre">'+cle+'</div><span class="carte-cat '+ind.catClasse+'">'+ind.categorie.toUpperCase()+'</span></div>'+bd;g.appendChild(carte);});
+setTimeout(function(){document.querySelectorAll('.barre-r').forEach(function(b){b.style.width=b.dataset.cible+'%';});},60);
+var ch=interventions.length>0;
+document.getElementById('zoneResume').innerHTML='<div class="resume-c"><div class="resume-v" style="color:var(--noir)">'+cles.length+'</div><div class="resume-l">Indicateurs</div></div><div class="resume-c"><div class="resume-v c-vert">'+(ch?nA:'—')+'</div><div class="resume-l">Atteints</div></div><div class="resume-c"><div class="resume-v c-orange">'+(ch?nP:'—')+'</div><div class="resume-l">Proches</div></div><div class="resume-c"><div class="resume-v c-rouge">'+(ch?nR:'—')+'</div><div class="resume-l">À améliorer</div></div>';}
+function ouvrirModal(cle,r){
+var ind=indicateurs[cle],m=document.getElementById('modalContenu'),d='';
+if(r){var st=statut(r.valeur,ind.objectif,ind.inverse),pc=pct(r.valeur,ind.objectif,ind.inverse);
+var ts=st==='vert'?'✅ Objectif atteint':st==='orange'?'⚠️ Proche de l\'objectif':'❌ À améliorer';
+var tn=ind.filtreCat?'Calculé sur '+r.nb+' interventions '+ind.filtreCat+' ('+r.nbCat+' au total)':'Calculé sur '+r.nb+' interventions';
+d='<div class="modal-donnees"><div class="modal-val c-'+st+'">'+r.valeur+' '+ind.unite+'</div><div class="modal-obj">'+ts+' — Objectif : '+ind.objectif+' '+ind.unite+'</div><div class="modal-nb">'+tn+'</div><div class="modal-barre"><div class="modal-barre-r f-'+st+'" style="width:0%" data-cible="'+Math.round(pc)+'"></div></div></div>';}
+else d='<div class="modal-donnees" style="text-align:center;color:var(--gris)">Aucune donnée</div>';
+m.innerHTML='<button class="modal-fermer" onclick="fermerModal()">✕</button><span class="carte-cat '+ind.catClasse+' modal-cat">'+ind.categorie.toUpperCase()+'</span><div class="modal-titre">'+cle+'</div>'+d+'<div class="modal-section"><div class="modal-section-titre">Description</div><div class="modal-section-texte">'+ind.description+'</div></div><div class="modal-impact"><div class="modal-section-titre">Impact clinique</div><div class="modal-section-texte">'+ind.impact+'</div></div>';
+document.getElementById('modalFond').classList.add('ouvert');document.body.style.overflow='hidden';
+setTimeout(function(){var b=m.querySelector('.modal-barre-r');if(b)b.style.width=b.dataset.cible+'%';},60);}
+function fermerModal(){document.getElementById('modalFond').classList.remove('ouvert');document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerModal();});
+function changerOnglet(id,btn){document.querySelectorAll('.panneau').forEach(function(p){p.classList.remove('visible');});document.getElementById(id==='dashboard'?'panDashboard':'panParametres').classList.add('visible');document.querySelectorAll('.onglet').forEach(function(o){o.classList.remove('actif');});btn.classList.add('actif');}
+function verifierMdp(){if(document.getElementById('champMdp').value===MDP){deverrouille=true;document.getElementById('verrou').style.display='none';document.getElementById('editeur').classList.add('visible');construireEditeur();}else{document.getElementById('errMdp').style.display='block';document.getElementById('champMdp').value='';setTimeout(function(){document.getElementById('errMdp').style.display='none';},2000);}}
+function construireEditeur(){var e=document.getElementById('editeur'),h='<h2 style="color:var(--texte);font-size:1.1rem;margin-bottom:16px">Édition des indicateurs</h2><div class="editeur-liste">';for(var c in indicateurs){var i=indicateurs[c];h+='<div class="editeur-item"><div class="editeur-entete"><div class="editeur-nom"><span class="carte-cat '+i.catClasse+'" style="margin-right:8px">'+i.categorie.toUpperCase()+'</span>'+c+'</div></div><div class="editeur-champs"><div class="editeur-champ"><label class="editeur-label">Objectif ('+i.unite+')</label><input class="editeur-input" type="number" data-cle="'+c+'" data-champ="objectif" value="'+i.objectif+'" min="0"></div><div class="editeur-champ"><label class="editeur-label">Unité</label><input class="editeur-input" data-cle="'+c+'" data-champ="unite" value="'+i.unite+'" style="width:80px"></div><div class="editeur-champ large"><label class="editeur-label">Description</label><textarea class="editeur-input" data-cle="'+c+'" data-champ="description">'+i.description+'</textarea></div><div class="editeur-champ large"><label class="editeur-label">Impact clinique</label><textarea class="editeur-input" data-cle="'+c+'" data-champ="impact">'+i.impact+'</textarea></div></div></div>';}h+='</div><div class="editeur-actions"><button class="btn btn-gris" onclick="annulerModifs()">Annuler</button><button class="btn-sauver" onclick="sauverEdition()">Sauvegarder</button></div>';e.innerHTML=h;}
+function sauverEdition(){document.querySelectorAll('.editeur-input[data-cle]').forEach(function(i){var c=i.dataset.cle,f=i.dataset.champ;if(!indicateurs[c])return;if(f==='objectif')indicateurs[c].objectif=parseFloat(i.value)||0;else indicateurs[c][f]=i.value;});sauverModifs();construire();toast("Sauvegardé");}
+function annulerModifs(){localStorage.removeItem(CLE_STOCKAGE);location.reload();}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('visible');setTimeout(function(){t.classList.remove('visible');},2500);}
+function filtrer(c){filtreActif=c;construire();}
+function traiterExcel(buf){if(typeof XLSX==='undefined')return 0;var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets["Interventions"];if(!ws){for(var i=0;i<wb.SheetNames.length;i++){if(normaliser(wb.SheetNames[i]).includes("intervention")){ws=wb.Sheets[wb.SheetNames[i]];break;}}}if(!ws)ws=wb.Sheets[wb.SheetNames[0]];var l=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});if(l.length<2)return 0;colonnesMap=trouverColonnes(l[0]);interventions=l.slice(1).filter(function(r){return r.some(function(c){return String(c).trim()!=="";});});return interventions.length;}
+function succes(n,nb){document.getElementById('statutFichier').textContent=n+" — "+nb+" interventions";document.getElementById('statutFichier').className="statut statut-ok";document.getElementById('zoneImport').className="zone-import charge";var cs={};interventions.forEach(function(l){var c=String(l[colonnesMap["_categorie"]]||"").trim();if(c)cs[c]=(cs[c]||0)+1;});var ih='<div class="infos-badge"><strong>'+interventions.length+'</strong> interventions</div>';for(var c in cs)ih+='<div class="infos-badge">'+c+' : <strong>'+cs[c]+'</strong></div>';document.getElementById('infoPeriode').innerHTML=ih;construire();}
+function erreur(m){document.getElementById('statutFichier').textContent=m;document.getElementById('statutFichier').className="statut statut-err";document.getElementById('zoneImport').className="zone-import erreur";construire();}
+async function autoCharger(){try{var r=await fetch(NOM_FICHIER);if(!r.ok)throw 0;var b=await r.arrayBuffer(),n=traiterExcel(new Uint8Array(b));if(n>0)succes("Auto",n);}catch(e){document.getElementById('statutFichier').textContent="Charger manuellement";document.getElementById('statutFichier').className="statut statut-err";document.getElementById('zoneImport').className="zone-import erreur";construire();}}
+document.getElementById('selecteurFichier').addEventListener('change',function(ev){var f=ev.target.files[0];if(!f)return;var l=new FileReader();l.onload=function(e){try{var n=traiterExcel(new Uint8Array(e.target.result));if(n>0)succes(f.name,n);}catch(err){erreur("Erreur");}};l.readAsArrayBuffer(f);});
+function reinitialiser(){interventions=[];colonnesMap={};document.getElementById('selecteurFichier').value='';document.getElementById('statutFichier').textContent="Aucun fichier";document.getElementById('statutFichier').className="statut";document.getElementById('zoneImport').className="zone-import erreur";document.getElementById('infoPeriode').innerHTML='';construire();}
+autoCharger();
+</script>
+</body>
+</html>

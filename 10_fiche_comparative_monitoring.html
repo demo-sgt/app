@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche comparative — Monitoring cardiaque / Défibrillateur</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+--rouge:#C41E3A;--rouge-fonce:#8B1525;--noir:#1a1a1a;--gris:#6b7280;--gris-clair:#e5e7eb;
+--fond:#f8f7f4;--blanc:#ffffff;--vert:#16a34a;--orange:#ea580c;--bleu:#1e40af;--violet:#7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--fond);color:var(--noir);padding:20px}
+.page{max-width:1500px;margin:0 auto}
+.banniere{background:linear-gradient(135deg,var(--rouge),var(--rouge-fonce));color:white;padding:24px 32px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.banniere h1{font-family:'Playfair Display',serif;font-size:1.4rem}
+.banniere p{opacity:.8;font-size:.82rem;margin-top:4px}
+.meta{text-align:right;font-size:.78rem;opacity:.7;line-height:1.6}
+.barre-actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-rouge{background:var(--rouge);color:white}.btn-rouge:hover{background:var(--rouge-fonce)}
+.btn-gris{background:#e5e7eb;color:var(--noir)}.btn-gris:hover{background:#d1d5db}
+.btn-vert{background:var(--vert);color:white}.btn-vert:hover{background:#15803d}
+.btn-bleu{background:var(--bleu);color:white}.btn-bleu:hover{background:#1e3a8a}
+.btn-sm{padding:4px 8px;font-size:.7rem}
+.btn-icone{width:24px;height:24px;padding:0;border-radius:5px;font-size:.7rem;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid transparent;color:var(--gris);cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-icone:hover{background:rgba(0,0,0,.06);border-color:var(--gris-clair);color:var(--noir)}
+.btn-suppr{color:#dc2626;font-size:.65rem}.btn-suppr:hover{background:rgba(220,38,38,.08);border-color:#fca5a5}
+.legende{display:flex;gap:16px;margin-bottom:14px;padding:10px 18px;background:var(--blanc);border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.04);font-size:.78rem;color:var(--gris);flex-wrap:wrap;align-items:center}
+.legende-item{display:flex;align-items:center;gap:5px}
+.pastille{width:12px;height:12px;border-radius:3px}
+.pastille-actuel{background:var(--rouge)}.pastille-concurrent{background:var(--bleu)}.pastille-ref{background:var(--vert)}.pastille-upgrade{background:var(--violet)}
+.tableau-wrapper{overflow-x:auto;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,.07);margin-bottom:20px;padding-bottom:8px}
+table{width:100%;border-collapse:collapse;background:var(--blanc);min-width:800px}
+thead th{position:sticky;top:0;z-index:3;background:#fafafa}
+th,td{padding:8px 12px;font-size:.8rem;border-bottom:1px solid #f0f0f0;vertical-align:top;text-align:left}
+th{font-weight:700;color:var(--gris);font-size:.68rem;text-transform:uppercase;letter-spacing:.4px}
+th:first-child{min-width:170px}
+.col-app{min-width:140px;text-align:center;position:relative}
+.col-app .entete-contenu{display:flex;flex-direction:column;align-items:center;gap:2px}
+.nom-app{font-weight:700;font-size:.85rem;color:var(--noir);text-transform:none;letter-spacing:0}
+.fab-app{font-size:.68rem;color:var(--gris);text-transform:none;letter-spacing:0;font-weight:400}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.badge-rouge{background:rgba(196,30,58,.1);color:var(--rouge)}
+.badge-violet{background:rgba(124,58,237,.1);color:var(--violet)}
+.badge-bleu{background:rgba(30,64,175,.1);color:var(--bleu)}
+.badge-vert{background:rgba(22,163,74,.1);color:var(--vert)}
+.entete-actions{display:flex;gap:3px;justify-content:center;margin-top:4px}
+.section-ligne td{background:linear-gradient(135deg,var(--rouge),var(--rouge-fonce));color:white;font-weight:700;font-size:.8rem;letter-spacing:.5px;padding:7px 12px}
+.critere-cell{font-weight:600;color:var(--noir);position:relative}
+.val-cell{position:relative;font-size:.8rem;line-height:1.45}
+.val-cell:hover .btn-edit-cell{opacity:1}
+.btn-edit-cell{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .15s}
+.couleur-vert{background:rgba(22,163,74,.07);color:var(--vert);font-weight:600}
+.couleur-orange{background:rgba(234,88,12,.07);color:var(--orange);font-weight:600}
+.couleur-neutre{background:transparent;color:var(--noir)}
+.col-ajout{min-width:50px;text-align:center;vertical-align:middle;cursor:pointer;transition:background .15s}
+.col-ajout:hover{background:rgba(0,0,0,.03)}
+.col-ajout-btn{width:36px;height:36px;border-radius:50%;border:2px dashed var(--gris-clair);background:transparent;color:var(--gris);font-size:1.2rem;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center}
+.col-ajout-btn:hover{border-color:var(--rouge);color:var(--rouge);background:rgba(196,30,58,.04)}
+.editeur-inline{background:var(--blanc);border:1px solid var(--gris-clair);border-radius:8px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);position:absolute;z-index:20;min-width:240px;left:0;top:100%}
+.editeur-inline input,.editeur-inline select,.editeur-inline textarea{width:100%;padding:6px 8px;border:1px solid var(--gris-clair);border-radius:5px;font-family:inherit;font-size:.82rem;color:var(--noir);background:var(--fond)}
+.editeur-inline textarea{resize:vertical;min-height:50px}
+.editeur-inline input:focus,.editeur-inline select:focus,.editeur-inline textarea:focus{outline:none;border-color:var(--rouge)}
+.editeur-inline label{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--gris);display:block;margin:6px 0 3px}
+.editeur-inline label:first-child{margin-top:0}
+.couleur-choix{display:flex;gap:6px;margin-top:4px}
+.couleur-opt{width:28px;height:28px;border-radius:6px;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;transition:all .15s}
+.couleur-opt:hover{transform:scale(1.1)}
+.couleur-opt.actif{border-color:var(--noir);box-shadow:0 0 0 2px rgba(0,0,0,.15)}
+.couleur-opt-vert{background:rgba(22,163,74,.15);color:var(--vert)}
+.couleur-opt-orange{background:rgba(234,88,12,.15);color:var(--orange)}
+.couleur-opt-neutre{background:var(--gris-clair);color:var(--gris)}
+.editeur-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}
+.modale-fond{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:50;justify-content:center;align-items:center;padding:20px}
+.modale-fond.visible{display:flex}
+.modale{background:var(--blanc);border-radius:14px;padding:24px;width:100%;max-width:420px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.modale h3{font-size:1rem;margin-bottom:16px}
+.champ{margin-bottom:12px}
+.champ label{display:block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--gris);margin-bottom:4px}
+.champ input,.champ select{width:100%;padding:8px 12px;border:1px solid var(--gris-clair);border-radius:6px;font-family:inherit;font-size:.85rem}
+.champ input:focus,.champ select:focus{outline:none;border-color:var(--rouge)}
+.couleurs-entete{display:flex;gap:8px;flex-wrap:wrap}
+.couleur-entete-opt{padding:6px 14px;border-radius:6px;border:2px solid transparent;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .15s}
+.couleur-entete-opt.actif{border-color:var(--noir)}
+.modale-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.synthese{display:grid;gap:14px;margin:16px 0 4px;padding:2px;min-width:800px}
+.syn-vide{}
+.syn-carte{background:var(--blanc);border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.04);border-top:4px solid;min-width:140px}
+.syn-carte h3{font-size:.82rem;margin-bottom:6px}
+.syn-carte .forces{font-size:.75rem;line-height:1.5}
+.force-item{padding:2px 0}
+.force-plus{color:var(--vert)}.force-moins{color:var(--orange)}
+@media(max-width:900px){.banniere{flex-direction:column;text-align:center}.meta{text-align:center}}
+@media print{
+@page{size:landscape;margin:12mm 10mm}
+body{padding:0;background:white;color:black;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{max-width:100%}
+.barre-actions,.btn,.btn-icone,.btn-edit-cell,.entete-actions,.col-ajout,.modale-fond{display:none!important}
+.banniere{background:var(--rouge)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:16px 24px;border-radius:8px;margin-bottom:12px}
+.banniere h1{font-size:14pt}
+.banniere p{font-size:8pt}
+.meta{font-size:7.5pt}
+.legende{padding:6px 14px;margin-bottom:8px;font-size:7.5pt;box-shadow:none;border:1px solid #ddd}
+.tableau-wrapper{box-shadow:none;border:1px solid #ccc;border-radius:6px;margin-bottom:10px}
+table{min-width:auto;font-size:8pt}
+th{font-size:6.5pt;padding:5px 7px;background:#f5f5f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+td{padding:4px 7px;font-size:7.5pt;border-bottom:1px solid #e5e5e5}
+.col-app{min-width:auto}
+.nom-app{font-size:8.5pt}
+.fab-app{font-size:6.5pt}
+.badge{font-size:5.5pt;padding:1px 5px}
+.section-ligne td{font-size:8pt;padding:5px 7px;background:var(--rouge)!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.couleur-vert{background:rgba(22,163,74,.1)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.couleur-orange{background:rgba(234,88,12,.1)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.synthese{page-break-inside:avoid;overflow:visible;display:flex!important;flex-direction:column!important;gap:8px!important;min-width:auto!important;grid-template-columns:none!important}
+.syn-vide{display:none!important}
+.syn-carte{padding:10px 12px;box-shadow:none;border:1px solid #ddd;border-radius:6px;font-size:7.5pt;page-break-inside:avoid;min-width:auto;width:100%!important}
+.syn-carte h3{font-size:8.5pt}
+.syn-carte .forces{font-size:7pt}
+.pied-impression{display:block!important;text-align:center;font-size:7pt;color:#999;margin-top:10px;padding-top:8px;border-top:1px solid #ddd}
+}
+.pied-impression{display:none}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="banniere">
+<div>
+<h1>Fiche comparative — Monitoring / Défibrillateur</h1>
+<p>Compagnie Ambulances — SIS Genève — GT Veille Technologique</p>
+</div>
+<div class="meta">Catégorie : Monitoring cardiaque<br>Mise à jour : Février 2026<br>Référence actuelle : ZOLL X Series</div>
+</div>
+
+<div class="barre-actions">
+<button class="btn btn-vert" onclick="ajouterColonne()">+ Ajouter un appareil</button>
+<button class="btn btn-gris" onclick="ajouterSection()">+ Section</button>
+<button class="btn btn-gris" onclick="ajouterLigne()">+ Ligne</button>
+<button class="btn btn-gris" onclick="exporterJSON()">💾 Sauvegarder JSON</button>
+<button class="btn btn-gris" onclick="document.getElementById('importJSON').click()">📂 Charger JSON</button>
+<input type="file" id="importJSON" accept=".json" style="display:none" onchange="importerJSON(event)">
+<button class="btn btn-gris" onclick="reinitialiser()">↺ Réinitialiser</button>
+<button class="btn btn-rouge" onclick="window.print()">🖨️ Imprimer</button>
+</div>
+
+<div class="legende">
+<div class="legende-item"><div class="pastille pastille-actuel"></div> Actuel SIS</div>
+<div class="legende-item"><div class="pastille pastille-concurrent"></div> Concurrent</div>
+<div class="legende-item"><div class="pastille pastille-ref"></div> Référence</div>
+<div class="legende-item"><div class="pastille pastille-upgrade"></div> Évolution</div>
+<div class="legende-item">🟢 Avantage</div>
+<div class="legende-item">🟠 Limite</div>
+<div class="legende-item">✏️ = éditer (survol cellule)</div>
+</div>
+
+<div class="tableau-wrapper">
+<table id="tableau"><thead id="enteteTableau"></thead><tbody id="corpsTableau"></tbody></table>
+<div class="syn-titre" id="synTitre" style="font-weight:700;font-size:.78rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;padding:14px 12px 0;border-top:1px solid #f0f0f0;margin-top:4px">Synthèse par appareil</div>
+<div class="synthese" id="zoneSynthese"></div>
+</div>
+
+<div class="pied-impression">SIS Genève — Compagnie Ambulances — GT Veille Technologique — Document interne</div>
+
+</div>
+
+<div class="modale-fond" id="modaleEntete">
+<div class="modale">
+<h3 id="modaleEnteteTitre">Modifier l'en-tête</h3>
+<div class="champ"><label>Nom de l'appareil</label><input type="text" id="enteteNom"></div>
+<div class="champ"><label>Fabricant</label><input type="text" id="enteteFab"></div>
+<div class="champ"><label>Annotation</label>
+<select id="enteteBadge" onchange="if(this.value==='__custom__'){document.getElementById('enteteBadgeCustom').style.display='block';document.getElementById('enteteBadgeCustom').focus()}else{document.getElementById('enteteBadgeCustom').style.display='none'}">
+<option value="">— Aucune —</option>
+<option value="En service au SIS">En service au SIS</option>
+<option value="Référence marché">Référence marché</option>
+<option value="Évolution gamme">Évolution gamme</option>
+<option value="En test">En test</option>
+<option value="Concurrent principal">Concurrent principal</option>
+<option value="Nouvelle génération">Nouvelle génération</option>
+<option value="__custom__">Personnalisé…</option>
+</select>
+<input type="text" id="enteteBadgeCustom" placeholder="Saisir l'annotation" style="display:none;margin-top:6px">
+</div>
+<div class="champ">
+<label>Couleur de colonne</label>
+<div class="couleurs-entete" id="enteteCouleurs"></div>
+</div>
+<div class="modale-actions">
+<button class="btn btn-gris" onclick="fermerModaleEntete()">Annuler</button>
+<button class="btn btn-rouge" id="btnSupprCol" onclick="supprimerColonne()">Supprimer colonne</button>
+<button class="btn btn-vert" onclick="sauvegarderEntete()">Enregistrer</button>
+</div>
+</div>
+</div>
+
+<div class="modale-fond" id="modaleSection">
+<div class="modale">
+<h3>Ajouter une section</h3>
+<div class="champ"><label>Titre de la section</label><input type="text" id="sectionTitre" placeholder="Ex. : Connectivité avancée"></div>
+<div class="modale-actions">
+<button class="btn btn-gris" onclick="document.getElementById('modaleSection').classList.remove('visible')">Annuler</button>
+<button class="btn btn-vert" onclick="confirmerSection()">Ajouter</button>
+</div>
+</div>
+</div>
+
+<div class="modale-fond" id="modaleLigne">
+<div class="modale">
+<h3>Ajouter un critère</h3>
+<div class="champ"><label>Nom du critère</label><input type="text" id="ligneNom" placeholder="Ex. : Résistance à l'eau"></div>
+<div class="modale-actions">
+<button class="btn btn-gris" onclick="document.getElementById('modaleLigne').classList.remove('visible')">Annuler</button>
+<button class="btn btn-vert" onclick="confirmerLigne()">Ajouter</button>
+</div>
+</div>
+</div>
+
+<script>
+const COULEURS_DISPO=[
+{id:'rouge',label:'Rouge',css:'var(--rouge)',hex:'#C41E3A'},
+{id:'bleu',label:'Bleu',css:'var(--bleu)',hex:'#1e40af'},
+{id:'vert',label:'Vert',css:'var(--vert)',hex:'#16a34a'},
+{id:'violet',label:'Violet',css:'var(--violet)',hex:'#7c3aed'},
+{id:'orange',label:'Orange',css:'var(--orange)',hex:'#ea580c'},
+{id:'gris',label:'Gris',css:'var(--gris)',hex:'#6b7280'},
+];
+
+const CLE='sis_fiche_comparative_v3';
+
+function etatDefaut(){
+return {
+colonnes:[
+{id:'zoll',nom:'ZOLL X Series',fab:'ZOLL Medical (Asahi Kasei)',badge:'En service au SIS',couleur:'rouge'},
+{id:'corpuls',nom:'Corpuls C3 Touch',fab:'GS Elektromedizinische Geräte',badge:'',couleur:'bleu'},
+{id:'lifepak',nom:'Stryker LIFEPAK 15',fab:'Stryker (ex Physio-Control)',badge:'',couleur:'vert'},
+{id:'zollAdv',nom:'ZOLL Zenix',fab:'ZOLL Medical (Asahi Kasei)',badge:'Nouvelle génération',couleur:'violet'},
+],
+lignes:[
+{type:'section',titre:"Caractéristiques générales"},
+{type:'critere',critere:"Poids (config. complète)",valeurs:{zoll:{t:"< 5.5 kg",c:"vert"},corpuls:{t:"6.3–7.5 kg (modulaire)",c:""},lifepak:{t:"7.9–8.4 kg",c:""},zollAdv:{t:"5.94 kg avec batterie",c:""}}},
+{type:'critere',critere:"Dimensions (L×H×P)",valeurs:{zoll:{t:"Compact, format réduit",c:"vert"},corpuls:{t:"30.5×29.6×19.5 cm",c:""},lifepak:{t:"40.1×31.8×23.1 cm",c:""},zollAdv:{t:"24.1×26.9×22.1 cm",c:""}}},
+{type:'critere',critere:"Écran",valeurs:{zoll:{t:"LCD couleur",c:""},corpuls:{t:"8.4\" transflectif, tactile optionnel",c:"vert"},lifepak:{t:"8.4\" LCD anti-reflet SunVue",c:""},zollAdv:{t:"8.4\" LCD HD tactile 800×600, trim knob",c:"vert"}}},
+{type:'critere',critere:"Conception",valeurs:{zoll:{t:"Monobloc compact",c:""},corpuls:{t:"Modulaire 3 éléments séparables (moniteur + patient box + défib)",c:"vert"},lifepak:{t:"Monobloc robuste",c:""},zollAdv:{t:"Monobloc, pods modulaires Z-Link (upgrade/réparation sur site)",c:"vert"}}},
+{type:'critere',critere:"Protection",valeurs:{zoll:{t:"Robuste, usage militaire/aéromédical",c:""},corpuls:{t:"IP55, MIL-STD-810G, DIN EN 1789, RTCA DO 160G",c:"vert"},lifepak:{t:"Résistance chute 76 cm, conditions extrêmes",c:""},zollAdv:{t:"IP55, EN 1789, RTCA DO-160G, chute 0.75 m fonctionnel / 2 m sécurité",c:"vert"}}},
+{type:'critere',critere:"Autonomie batterie",valeurs:{zoll:{t:"~6h monitoring continu",c:""},corpuls:{t:"7–10h monitoring continu",c:"vert"},lifepak:{t:"Double batterie Li-Ion, commutation auto",c:""},zollAdv:{t:"~4h monitoring complet (Li-Ion 93 Wh)",c:"orange"}}},
+{type:'critere',critere:"Temps de charge",valeurs:{zoll:{t:"Standard",c:""},corpuls:{t:"~2h charge complète",c:"vert"},lifepak:{t:"~190 min dans l'appareil",c:""},zollAdv:{t:"~5h charge complète via appareil",c:"orange"}}},
+
+{type:'section',titre:"Monitoring et paramètres cliniques"},
+{type:'critere',critere:"ECG 12 dérivations",valeurs:{zoll:{t:"Oui, acquisition et stockage",c:""},corpuls:{t:"Oui, avec interprétation HES, preview temps réel",c:""},lifepak:{t:"Oui, monitoring continu 12D en arrière-plan, alerte ST",c:"vert"},zollAdv:{t:"Oui, avec analyse et interprétation 12D intégrée",c:"vert"}}},
+{type:'critere',critere:"SpO2",valeurs:{zoll:{t:"Masimo SET",c:""},corpuls:{t:"Masimo Rainbow SET (SpO2, PI, SpCO, SpMet, SpHb, RRp)",c:"vert"},lifepak:{t:"Masimo Rainbow SET (SpO2, SpCO, SpMet)",c:""},zollAdv:{t:"Masimo RD Rainbow SET (SpO2, SpCO, SpMet, SpHb, SpOC, PI, PVI)",c:"vert"}}},
+{type:'critere',critere:"Capnographie (EtCO2)",valeurs:{zoll:{t:"Microstream",c:""},corpuls:{t:"Mainstream capONE (pas de consommable)",c:"vert"},lifepak:{t:"Microstream, waveform continue",c:""},zollAdv:{t:"Microstream, warm-up < 10 s, FR 0–150/min",c:""}}},
+{type:'critere',critere:"PNI (NIBP)",valeurs:{zoll:{t:"Oui",c:""},corpuls:{t:"Oui, SunTech, indicateur qualité",c:""},lifepak:{t:"Oui",c:""},zollAdv:{t:"Oui, oscillométrie, intervalles auto 1–60 min",c:""}}},
+{type:'critere',critere:"Pressions invasives",valeurs:{zoll:{t:"3 canaux",c:""},corpuls:{t:"4 canaux",c:"vert"},lifepak:{t:"2 canaux",c:""},zollAdv:{t:"3 canaux",c:""}}},
+{type:'critere',critere:"Température",valeurs:{zoll:{t:"Oui",c:""},corpuls:{t:"2 canaux",c:"vert"},lifepak:{t:"Oui",c:""},zollAdv:{t:"2 canaux (rectale, œsophagienne, surface)",c:"vert"}}},
+{type:'critere',critere:"Nombre de courbes affichées",valeurs:{zoll:{t:"4 simultanées",c:""},corpuls:{t:"6 simultanées + 13 paramètres",c:"vert"},lifepak:{t:"Multiples",c:""},zollAdv:{t:"4 simultanées, dashboards personnalisables",c:""}}},
+{type:'critere',critere:"Dashboard TBI",valeurs:{zoll:{t:"Non",c:""},corpuls:{t:"Non standard",c:""},lifepak:{t:"Non standard",c:""},zollAdv:{t:"Oui, intégré (SpO2, PAS, EtCO2, ventilation)",c:"vert"}}},
+
+{type:'section',titre:"Défibrillation et thérapie"},
+{type:'critere',critere:"Technologie de choc",valeurs:{zoll:{t:"Rectilinear Biphasic",c:""},corpuls:{t:"Biphasique avec compensation d'impédance",c:""},lifepak:{t:"ADAPTIV Biphasic (escalade possible)",c:""},zollAdv:{t:"Rectilinear Biphasic + RapidShock (pause RCP réduite)",c:"vert"}}},
+{type:'critere',critere:"Énergie maximale",valeurs:{zoll:{t:"200 J",c:""},corpuls:{t:"200 J (ou 360 J selon config.)",c:""},lifepak:{t:"360 J",c:"vert"},zollAdv:{t:"200 J (1–200 J, 20 paliers)",c:""}}},
+{type:'critere',critere:"Pacing externe",valeurs:{zoll:{t:"Oui, 0–140 mA",c:""},corpuls:{t:"Oui, FIX + DEMAND + Overdrive",c:"vert"},lifepak:{t:"Oui",c:""},zollAdv:{t:"Oui, 10–140 mA, Demand + Fixed, courant constant",c:""}}},
+{type:'critere',critere:"Mode AED",valeurs:{zoll:{t:"Oui",c:""},corpuls:{t:"Oui, protocole configurable",c:""},lifepak:{t:"Oui",c:""},zollAdv:{t:"Oui, algorithme AED adapté adulte/pédiatrique",c:"vert"}}},
+{type:'critere',critere:"Feedback RCP temps réel",valeurs:{zoll:{t:"Real CPR Help (profondeur, fréquence, relâchement)",c:"vert"},corpuls:{t:"primeCPR Feedback (capteur externe)",c:""},lifepak:{t:"CPR Metronome (audio uniquement)",c:"orange"},zollAdv:{t:"Real CPR Help + Real BVM Help (volume + fréquence ventilation)",c:"vert"}}},
+{type:'critere',critere:"See-Thru CPR",valeurs:{zoll:{t:"Oui (filtre artefacts compressions)",c:"vert"},corpuls:{t:"Non",c:"orange"},lifepak:{t:"Non",c:"orange"},zollAdv:{t:"Oui, filtrage adaptatif artefacts",c:"vert"}}},
+{type:'critere',critere:"CPR Dashboard",valeurs:{zoll:{t:"Oui (profondeur, fréquence, FCT)",c:"vert"},corpuls:{t:"Via moniteur (contrôle corpuls cpr)",c:""},lifepak:{t:"Non natif",c:"orange"},zollAdv:{t:"Oui, adulte + pédiatrique (profondeur, fréquence, PPI, relâchement)",c:"vert"}}},
+
+{type:'section',titre:"Connectivité et données"},
+{type:'critere',critere:"WiFi intégré",valeurs:{zoll:{t:"Oui (premier du marché)",c:""},corpuls:{t:"Oui (WLAN + 4G modem)",c:"vert"},lifepak:{t:"Oui (V4+, via LIFENET)",c:""},zollAdv:{t:"Oui, 802.11 a/b/g/n/ac + 4G MiFi optionnel",c:"vert"}}},
+{type:'critere',critere:"Bluetooth",valeurs:{zoll:{t:"Oui",c:""},corpuls:{t:"Oui (liaison modules + corpuls cpr)",c:""},lifepak:{t:"Oui",c:""},zollAdv:{t:"Oui, Bluetooth 5.0",c:"vert"}}},
+{type:'critere',critere:"Transmission 12D",valeurs:{zoll:{t:"Oui, vers RescueNet",c:""},corpuls:{t:"Oui, vers corpuls.mission (télémédecine live)",c:"vert"},lifepak:{t:"Oui, vers LIFENET System",c:""},zollAdv:{t:"Oui, vers RescueNet CaseReview (auto)",c:""}}},
+{type:'critere',critere:"Télémédecine / streaming",valeurs:{zoll:{t:"Non natif",c:"orange"},corpuls:{t:"Oui, corpuls.mission (vidéo + données live)",c:"vert"},lifepak:{t:"Oui (V4+, streaming live)",c:""},zollAdv:{t:"Oui, RescueNet Live (données quasi temps réel)",c:"vert"}}},
+{type:'critere',critere:"Extraction données post-événement",valeurs:{zoll:{t:"RescueNet CaseReview (USB, WiFi)",c:""},corpuls:{t:"corpuls.manager (USB, réseau)",c:""},lifepak:{t:"CODE-STAT (USB, cloud LIFENET)",c:""},zollAdv:{t:"RescueNet CaseReview (envoi auto, USB-A/C, WiFi)",c:"vert"}}},
+{type:'critere',critere:"Gestion parc à distance",valeurs:{zoll:{t:"Non standard",c:""},corpuls:{t:"Non standard",c:""},lifepak:{t:"LIFENET Asset (cloud, état batterie, tests auto)",c:""},zollAdv:{t:"Oui (dashboard cloud)",c:"vert"}}},
+{type:'critere',critere:"Ventilation feedback temps réel",valeurs:{zoll:{t:"Non",c:""},corpuls:{t:"Non",c:""},lifepak:{t:"Non",c:""},zollAdv:{t:"Oui (Real BVM Help, volume + fréquence, indicateur coloré)",c:"vert"}}},
+
+{type:'section',titre:"Ergonomie opérationnelle"},
+{type:'critere',critere:"Manipulation avec gants",valeurs:{zoll:{t:"Boutons physiques, bon retour tactile",c:""},corpuls:{t:"Jog-dial + softkeys + tactile optionnel",c:""},lifepak:{t:"Boutons physiques larges, intuitifs",c:""},zollAdv:{t:"Écran tactile HD + trim knob, accès ≤ 3 touches",c:"vert"}}},
+{type:'critere',critere:"Mise en route",valeurs:{zoll:{t:"Rapide",c:""},corpuls:{t:"Immédiate au retrait du support de charge",c:"vert"},lifepak:{t:"Rapide, auto-test quotidien",c:""},zollAdv:{t:"Rapide, charge défib < 7 s",c:""}}},
+{type:'critere',critere:"Monitoring pendant transport",valeurs:{zoll:{t:"Monobloc à repositionner",c:""},corpuls:{t:"Patient box reste sur le patient, moniteur au paramedic",c:"vert"},lifepak:{t:"Monobloc à repositionner",c:""},zollAdv:{t:"Monobloc, vues personnalisables à distance",c:""}}},
+{type:'critere',critere:"Imprimante",valeurs:{zoll:{t:"Intégrée",c:""},corpuls:{t:"Intégrée, 106 mm, 6 courbes simultanées",c:"vert"},lifepak:{t:"Intégrée",c:""},zollAdv:{t:"Intégrée, 80 mm, orientation repensée (hors sacoche)",c:""}}},
+
+{type:'section',titre:"Maintenance et support"},
+{type:'critere',critere:"SAV en Suisse",valeurs:{zoll:{t:"Oui, via distributeur agréé",c:""},corpuls:{t:"Oui, réseau européen étendu (>60 pays)",c:""},lifepak:{t:"Oui, Stryker Suisse",c:""},zollAdv:{t:"Oui, même réseau ZOLL + ExpertCare sur site",c:"vert"}}},
+{type:'critere',critere:"Consommables",valeurs:{zoll:{t:"Électrodes ZOLL spécifiques",c:""},corpuls:{t:"corPatch (spécifiques)",c:""},lifepak:{t:"QUIK-COMBO (spécifiques)",c:""},zollAdv:{t:"Électrodes ZOLL, câbles Z-Link dédiés",c:""}}},
+{type:'critere',critere:"Formation nécessaire",valeurs:{zoll:{t:"Déjà maîtrisé par les équipes",c:"vert"},corpuls:{t:"Formation initiale complète (concept modulaire différent)",c:"orange"},lifepak:{t:"Formation courte (interface intuitive)",c:""},zollAdv:{t:"Formation courte (écosystème ZOLL, interface tactile intuitive)",c:""}}},
+
+{type:'section',titre:"Positionnement économique"},
+{type:'critere',critere:"Gamme de prix (indicatif)",valeurs:{zoll:{t:"€€€",c:""},corpuls:{t:"€€€€",c:"orange"},lifepak:{t:"€€€",c:""},zollAdv:{t:"€€€€",c:"orange"}}},
+{type:'critere',critere:"Coût consommables récurrents",valeurs:{zoll:{t:"Moyen (électrodes, capteurs SpO2)",c:""},corpuls:{t:"Moyen (corPatch, capteurs Masimo Rainbow)",c:""},lifepak:{t:"Moyen (QUIK-COMBO, capteurs Masimo)",c:""},zollAdv:{t:"Moyen (électrodes ZOLL, capteurs Masimo Rainbow, pods)",c:""}}},
+{type:'critere',critere:"Compatibilité consommables actuels SIS",valeurs:{zoll:{t:"Totale",c:"vert"},corpuls:{t:"Aucune — changement complet",c:"orange"},lifepak:{t:"Aucune — changement complet",c:"orange"},zollAdv:{t:"Partielle — câbles Z-Link spécifiques, électrodes compatibles",c:""}}},
+]
+};
+}
+
+let etat=charger();
+let editeurOuvert=null;
+let enteteEnEdition=null;
+
+function charger(){const s=localStorage.getItem(CLE);if(s){try{return JSON.parse(s)}catch(e){}}return etatDefaut()}
+function sauver(){localStorage.setItem(CLE,JSON.stringify(etat))}
+
+function couleurCSS(id){const c=COULEURS_DISPO.find(x=>x.id===id);return c?c.css:'var(--gris)'}
+function couleurHex(id){const c=COULEURS_DISPO.find(x=>x.id===id);return c?c.hex:'#6b7280'}
+
+function estOuiNon(texte){const t=texte.trim().toLowerCase();return t==='oui'||t==='non'}
+
+function fermerEditeur(){if(editeurOuvert){editeurOuvert.remove();editeurOuvert=null}}
+
+function rendu(){
+fermerEditeur();
+const nbCol=etat.colonnes.length;
+
+let thHtml='<tr><th style="min-width:170px">Critère</th>';
+etat.colonnes.forEach((col,ci)=>{
+const coul=couleurCSS(col.couleur);
+let badgeHtml='';
+if(col.badge){
+const badgeCls='badge badge-'+col.couleur;
+badgeHtml=`<div class="${badgeCls}">${col.badge}</div>`;
+}
+thHtml+=`<th class="col-app" style="border-bottom:3px solid ${coul}">
+<div class="entete-contenu">
+<div class="nom-app">${col.nom}</div>
+<div class="fab-app">${col.fab}</div>
+${badgeHtml}
+<div class="entete-actions">
+<button class="btn-icone" onclick="ouvrirModaleEntete(${ci})" title="Modifier">✏️</button>
+</div>
+</div>
+</th>`;
+});
+thHtml+=`<th class="col-ajout" onclick="ajouterColonne()"><button class="col-ajout-btn" title="Ajouter un appareil">+</button></th></tr>`;
+document.getElementById('enteteTableau').innerHTML=thHtml;
+
+let tbHtml='';
+etat.lignes.forEach((ligne,li)=>{
+if(ligne.type==='section'){
+tbHtml+=`<tr class="section-ligne"><td colspan="${nbCol+2}">${ligne.titre}<button class="btn-icone" style="color:white;margin-left:8px;border-color:rgba(255,255,255,.3)" onclick="editerSection(${li})" title="Renommer">✏️</button><button class="btn-icone btn-suppr" style="color:#fca5a5;margin-left:2px;border-color:rgba(255,255,255,.2)" onclick="supprimerLigne(${li})" title="Supprimer section">✕</button></td></tr>`;
+}else{
+tbHtml+=`<tr>`;
+tbHtml+=`<td class="critere-cell">${ligne.critere}<button class="btn-icone" style="margin-left:6px" onclick="editerCritere(${li})" title="Renommer">✏️</button><button class="btn-icone btn-suppr" style="margin-left:1px" onclick="supprimerLigne(${li})" title="Supprimer ligne">✕</button></td>`;
+etat.colonnes.forEach(col=>{
+const val=ligne.valeurs[col.id]||{t:'—',c:''};
+const clsCoul=val.c==='vert'?'couleur-vert':val.c==='orange'?'couleur-orange':'couleur-neutre';
+tbHtml+=`<td class="val-cell ${clsCoul}" id="cell_${li}_${col.id}">
+${val.t}
+<button class="btn-icone btn-edit-cell" onclick="ouvrirEditeurCellule(${li},'${col.id}',event)" title="Modifier">✏️</button>
+</td>`;
+});
+tbHtml+=`<td></td></tr>`;
+}
+});
+document.getElementById('corpsTableau').innerHTML=tbHtml;
+construireSynthese();
+sauver();
+}
+
+function ouvrirEditeurCellule(li,colId,evt){
+evt.stopPropagation();
+fermerEditeur();
+const cell=document.getElementById('cell_'+li+'_'+colId);
+if(!cell)return;
+const val=etat.lignes[li].valeurs[colId]||{t:'—',c:''};
+const ouiNon=estOuiNon(val.t);
+const div=document.createElement('div');
+div.className='editeur-inline';
+
+let champHtml;
+if(ouiNon){
+champHtml=`<label>Valeur</label><select id="editVal"><option value="Oui" ${val.t.trim().toLowerCase()==='oui'?'selected':''}>Oui</option><option value="Non" ${val.t.trim().toLowerCase()==='non'?'selected':''}>Non</option></select>`;
+}else{
+champHtml=`<label>Valeur</label><textarea id="editVal">${val.t==='—'?'':val.t}</textarea>`;
+}
+
+div.innerHTML=`
+${champHtml}
+<label>Couleur</label>
+<div class="couleur-choix">
+<div class="couleur-opt couleur-opt-vert ${val.c==='vert'?'actif':''}" onclick="choisirCouleurEdit(this,'vert')" title="Avantage">✓</div>
+<div class="couleur-opt couleur-opt-orange ${val.c==='orange'?'actif':''}" onclick="choisirCouleurEdit(this,'orange')" title="Limite">⚠</div>
+<div class="couleur-opt couleur-opt-neutre ${val.c===''||!val.c?'actif':''}" onclick="choisirCouleurEdit(this,'')" title="Neutre">—</div>
+</div>
+<input type="hidden" id="editCoul" value="${val.c||''}">
+<div class="editeur-actions">
+<button class="btn btn-gris btn-sm" onclick="fermerEditeur()">✕</button>
+<button class="btn btn-vert btn-sm" onclick="validerCellule(${li},'${colId}')">✓ OK</button>
+</div>`;
+
+cell.style.position='relative';
+cell.appendChild(div);
+editeurOuvert=div;
+const input=div.querySelector('#editVal');
+if(input)input.focus();
+}
+
+function choisirCouleurEdit(el,c){
+el.parentElement.querySelectorAll('.couleur-opt').forEach(o=>o.classList.remove('actif'));
+el.classList.add('actif');
+el.parentElement.parentElement.querySelector('#editCoul').value=c;
+}
+
+function validerCellule(li,colId){
+const val=document.getElementById('editVal').value.trim()||'—';
+const coul=document.getElementById('editCoul').value;
+if(!etat.lignes[li].valeurs)etat.lignes[li].valeurs={};
+etat.lignes[li].valeurs[colId]={t:val,c:coul};
+fermerEditeur();
+rendu();
+}
+
+function ouvrirModaleEntete(ci){
+enteteEnEdition=ci;
+const col=etat.colonnes[ci];
+document.getElementById('enteteNom').value=col.nom;
+document.getElementById('enteteFab').value=col.fab;
+const sel=document.getElementById('enteteBadge');
+const custom=document.getElementById('enteteBadgeCustom');
+const badge=col.badge||'';
+const opts=[...sel.options].map(o=>o.value);
+if(badge===''||opts.includes(badge)){sel.value=badge;custom.style.display='none';custom.value=''}
+else{sel.value='__custom__';custom.style.display='block';custom.value=badge}
+const zone=document.getElementById('enteteCouleurs');
+zone.innerHTML=COULEURS_DISPO.map(c=>`<div class="couleur-entete-opt ${col.couleur===c.id?'actif':''}" style="background:${c.hex}20;color:${c.hex}" onclick="choisirCouleurEntete(this,'${c.id}')">${c.label}</div>`).join('');
+document.getElementById('modaleEntete').classList.add('visible');
+}
+
+function choisirCouleurEntete(el,id){
+el.parentElement.querySelectorAll('.couleur-entete-opt').forEach(o=>o.classList.remove('actif'));
+el.classList.add('actif');
+el.dataset.couleur=id;
+}
+
+function sauvegarderEntete(){
+const ci=enteteEnEdition;
+etat.colonnes[ci].nom=document.getElementById('enteteNom').value.trim()||'Sans nom';
+etat.colonnes[ci].fab=document.getElementById('enteteFab').value.trim();
+const sel=document.getElementById('enteteBadge');
+if(sel.value==='__custom__'){etat.colonnes[ci].badge=document.getElementById('enteteBadgeCustom').value.trim()}
+else{etat.colonnes[ci].badge=sel.value}
+const actif=document.querySelector('#enteteCouleurs .actif');
+if(actif&&actif.dataset.couleur)etat.colonnes[ci].couleur=actif.dataset.couleur;
+fermerModaleEntete();
+rendu();
+}
+
+function fermerModaleEntete(){document.getElementById('modaleEntete').classList.remove('visible');enteteEnEdition=null}
+
+function supprimerColonne(){
+if(etat.colonnes.length<=1){alert('Il faut au minimum une colonne.');return}
+if(!confirm('Supprimer la colonne « '+etat.colonnes[enteteEnEdition].nom+' » et toutes ses données ?'))return;
+const id=etat.colonnes[enteteEnEdition].id;
+etat.colonnes.splice(enteteEnEdition,1);
+etat.lignes.forEach(l=>{if(l.valeurs)delete l.valeurs[id]});
+fermerModaleEntete();
+rendu();
+}
+
+function ajouterColonne(){
+const id='col_'+Date.now();
+etat.colonnes.push({id,nom:'Nouvel appareil',fab:'Fabricant',badge:'',couleur:'gris'});
+etat.lignes.forEach(l=>{if(l.type==='critere'){if(!l.valeurs)l.valeurs={};l.valeurs[id]={t:'—',c:''}}});
+rendu();
+const ci=etat.colonnes.length-1;
+setTimeout(()=>ouvrirModaleEntete(ci),100);
+}
+
+function ajouterSection(){document.getElementById('sectionTitre').value='';document.getElementById('modaleSection').classList.add('visible')}
+function confirmerSection(){const t=document.getElementById('sectionTitre').value.trim();if(!t)return;etat.lignes.push({type:'section',titre:t});document.getElementById('modaleSection').classList.remove('visible');rendu()}
+
+function ajouterLigne(){document.getElementById('ligneNom').value='';document.getElementById('modaleLigne').classList.add('visible')}
+function confirmerLigne(){const t=document.getElementById('ligneNom').value.trim();if(!t)return;const vals={};etat.colonnes.forEach(c=>{vals[c.id]={t:'—',c:''}});etat.lignes.push({type:'critere',critere:t,valeurs:vals});document.getElementById('modaleLigne').classList.remove('visible');rendu()}
+
+function editerSection(li){const t=prompt('Titre de la section :',etat.lignes[li].titre);if(t!==null&&t.trim()){etat.lignes[li].titre=t.trim();rendu()}}
+function editerCritere(li){const t=prompt('Nom du critère :',etat.lignes[li].critere);if(t!==null&&t.trim()){etat.lignes[li].critere=t.trim();rendu()}}
+function supprimerLigne(li){if(!confirm('Supprimer cette ligne ?'))return;etat.lignes.splice(li,1);rendu()}
+
+function construireSynthese(){
+const zone=document.getElementById('zoneSynthese');zone.innerHTML='';
+const nb=etat.colonnes.length;
+
+const ths=document.querySelectorAll('#enteteTableau th');
+if(ths.length>=nb+1){
+const largeurs=[];
+for(let i=0;i<ths.length;i++)largeurs.push(ths[i].offsetWidth+'px');
+zone.style.gridTemplateColumns=largeurs.join(' ');
+}else{
+zone.style.gridTemplateColumns='170px repeat('+nb+',1fr) 50px';
+}
+
+const vide=document.createElement('div');
+vide.className='syn-vide';
+zone.appendChild(vide);
+
+etat.colonnes.forEach(col=>{
+const forces=[];
+etat.lignes.forEach(l=>{
+if(l.type!=='critere')return;
+const v=l.valeurs[col.id];
+if(!v)return;
+if(v.c==='vert')forces.push({t:l.critere+' : '+v.t,p:true});
+if(v.c==='orange')forces.push({t:l.critere+' : '+v.t,p:false});
+});
+const carte=document.createElement('div');
+carte.className='syn-carte';
+carte.style.borderTopColor=couleurCSS(col.couleur);
+if(forces.length===0){
+carte.innerHTML=`<h3 style="color:${couleurCSS(col.couleur)}">${col.nom}</h3><p style="font-size:.68rem;color:var(--gris)">Aucun critère marqué</p>`;
+carte.style.opacity='.4';
+}else{
+carte.innerHTML=`<h3 style="color:${couleurCSS(col.couleur)}">${col.nom}</h3><p style="font-size:.68rem;color:var(--gris);margin-bottom:5px">${col.fab}</p><div class="forces">${forces.map(f=>`<div class="force-item ${f.p?'force-plus':'force-moins'}">${f.p?'✓':'⚠'} ${f.t}</div>`).join('')}</div>`;
+}
+zone.appendChild(carte);
+});
+
+const videFin=document.createElement('div');
+zone.appendChild(videFin);
+}
+
+window.addEventListener('resize',construireSynthese);
+
+function exporterJSON(){
+const blob=new Blob([JSON.stringify(etat,null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+a.download='fiche_comparative_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+
+function importerJSON(evt){
+const f=evt.target.files[0];if(!f)return;
+const r=new FileReader();
+r.onload=function(e){try{etat=JSON.parse(e.target.result);sauver();rendu();alert('Données chargées.')}catch(err){alert('Fichier invalide.')}};
+r.readAsText(f);evt.target.value='';
+}
+
+function reinitialiser(){if(!confirm('Réinitialiser toutes les données ?'))return;etat=etatDefaut();sauver();rendu()}
+
+document.addEventListener('click',function(e){
+if(editeurOuvert&&!editeurOuvert.contains(e.target)&&!e.target.classList.contains('btn-edit-cell'))fermerEditeur();
+});
+
+document.querySelectorAll('.modale-fond').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('visible')}));
+
+rendu();
+</script>
+</body>
+</html>
