@@ -100,6 +100,17 @@ textarea.editeur-input{min-height:60px;}
 .note-bas{margin-top:24px;padding:14px 20px;background:var(--carte);border:1px solid var(--bord);border-radius:12px;font-size:.75rem;color:var(--gris);line-height:1.5;box-shadow:var(--ombre);}
 .note-bas strong{color:var(--texte);}.note-bas code{background:var(--gris-c);padding:2px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.7rem;}
 @media(max-width:768px){.resume{grid-template-columns:repeat(2,1fr);}.grille{grid-template-columns:1fr;}.barre-nav{flex-direction:column;gap:10px;padding:12px 16px;}.contenu{padding:16px;}.zone-import{flex-direction:column;}.modal{padding:20px;}}
+
+@media(max-width:480px){
+.resume{grid-template-columns:1fr;}
+.resume-carte{padding:12px;}
+.resume-valeur{font-size:1.3rem;}
+.barre-nav h1{font-size:1rem;}
+.contenu{padding:10px;}
+.carte{padding:12px;}
+.carte h3{font-size:.85rem;}
+}
+
 @media print{.carte{break-inside:avoid;}.barre-nav,.zone-import,.filtres,.note-bas{display:none;}}
 </style>
 </head>

@@ -134,6 +134,30 @@ font-family: inherit; font-weight: 600; font-size: 0.85rem; cursor: pointer; tra
 #statutPdf { padding: 6px 40px; font-size: 0.82rem; display: none; }
 #statutPdf.erreur { color: var(--rouge-sis); display: block; }
 #statutPdf.ok { color: var(--vert); display: block; }
+
+@media(max-width:768px){
+.banniere{padding:16px;flex-direction:column;text-align:center;gap:8px;}
+.banniere h1{font-size:1.1rem;}
+.meta-infos{text-align:center;font-size:0.75rem;}
+.infos-produit{grid-template-columns:1fr;padding:16px;}
+table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+thead,tbody,tr{display:table;width:100%;table-layout:fixed;}
+th,td{padding:6px 4px;font-size:0.72rem;}
+input[type="range"]{width:50px;}
+.remarque-input{font-size:0.7rem;}
+.bilan{grid-template-columns:1fr;margin:16px;padding:16px;gap:12px;}
+.bilan-valeur{font-size:1.5rem;}
+.legende{padding:12px 16px;flex-wrap:wrap;gap:12px;}
+.actions{padding:12px 16px;flex-direction:column;}
+.actions button{width:100%;}
+}
+@media(max-width:480px){
+.banniere h1{font-size:0.95rem;}
+th,td{padding:4px 2px;font-size:0.65rem;}
+input[type="range"]{width:40px;}
+.bilan-valeur{font-size:1.2rem;}
+}
+
 @media print {
 body { padding: 0; }
 .conteneur { box-shadow: none; }

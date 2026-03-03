@@ -92,6 +92,23 @@ th:first-child{min-width:170px}
 .syn-carte .forces{font-size:.75rem;line-height:1.5}
 .force-item{padding:2px 0}
 .force-plus{color:var(--vert)}.force-moins{color:var(--orange)}
+
+@media(max-width:768px){
+.page{padding:12px;}
+.banniere{padding:16px;border-radius:10px;}
+.banniere h1{font-size:1rem;}
+.barre-actions{gap:6px;}
+.btn{padding:6px 10px;font-size:.72rem;}
+.legende{padding:8px 12px;gap:8px;font-size:.7rem;}
+.synthese{padding:12px;}
+.syn-barre-conteneur{flex-direction:column;gap:12px;}
+}
+@media(max-width:480px){
+.banniere h1{font-size:.9rem;}
+.banniere p{font-size:.7rem;}
+.btn{padding:5px 8px;font-size:.65rem;}
+}
+
 @media(max-width:900px){.banniere{flex-direction:column;text-align:center}.meta{text-align:center}}
 @media print{
 @page{size:landscape;margin:12mm 10mm}

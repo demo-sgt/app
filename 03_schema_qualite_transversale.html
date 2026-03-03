@@ -159,6 +159,25 @@ text-align: center;
 }
 .legende-bas p { font-size: 0.8rem; color: var(--gris); line-height: 1.6; }
 .legende-bas strong { color: var(--rouge); }
+
+@media(max-width:768px){
+.page{padding:16px 12px;}
+.titre-principal{padding:0 12px;}
+.titre-principal h1{font-size:1.3rem;}
+.schema-container{flex-direction:column;gap:12px;}
+.phase{min-height:auto;padding:20px 16px;}
+.fleche-phase{transform:rotate(90deg);margin:0 auto;}
+.retro-fleches{flex-direction:column;align-items:center;gap:16px;margin:0 16px;}
+.retro-item{max-width:100%;}
+.legende-bas{padding:16px;margin:16px 0;}
+}
+@media(max-width:480px){
+.titre-principal h1{font-size:1.1rem;}
+.phase{padding:16px 12px;}
+.element-titre{font-size:0.75rem;}
+.element-desc{font-size:0.7rem;}
+}
+
 @media print {
 body { padding: 12px; }
 .page { max-width: 100%; }
