@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Projets – André – Compagnie Ambulances SIS Genève</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--rouge:#C41E3A;--rouge-f:#8B1525;--bleu:#1e40af;--vert:#166534;--orange:#c2410c;--violet:#6d28d9;--gris-f:#374151;--noir:#1a1a1a;--gris:#6b7280;--gris-c:#e5e7eb;--fond:#f8f7f4;--blanc:#ffffff;--cyan:#0891b2}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--blanc);color:var(--noir)}
+.nav-fixe{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--gris-c);padding:0 24px;display:flex;align-items:center;height:56px;gap:16px}
+.nav-fixe .logo{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--rouge);font-weight:700;white-space:nowrap}
+.nav-liens{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.nav-liens::-webkit-scrollbar{display:none}
+.nav-lien{padding:6px 14px;border-radius:20px;font-size:0.72rem;font-weight:600;color:var(--gris);text-decoration:none;white-space:nowrap;transition:all 0.2s;border:1px solid transparent}
+.nav-lien:hover{color:var(--rouge);background:rgba(196,30,58,0.05)}
+.nav-lien.actif{background:var(--rouge);color:white;border-color:var(--rouge)}
+section{min-height:100vh;padding:80px 24px 60px;max-width:1100px;margin:0 auto}
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px 40px;max-width:none;overflow:hidden}
+canvas#particules{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.hero-contenu{position:relative;z-index:10;text-align:center;width:100%;max-width:1100px}
+.hero-badge{display:inline-block;padding:6px 18px;border-radius:20px;background:rgba(196,30,58,0.08);color:var(--rouge);font-size:0.78rem;font-weight:600;margin-bottom:16px;letter-spacing:0.5px}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,4.5vw,3.2rem);color:var(--noir);margin-bottom:8px;line-height:1.15}
+.hero h1 span{color:var(--rouge)}
+.hero-contenu>p{color:var(--gris);font-size:0.95rem;max-width:620px;line-height:1.7;margin:0 auto 28px}
+.hex-zone{position:relative;width:min(520px,85vw);height:min(520px,85vw);margin:0 auto 20px;z-index:10}
+.hex-noeud{position:absolute;width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;transform:translate(-50%,-50%);z-index:5}
+.hex-noeud:hover{transform:translate(-50%,-50%) scale(1.14);z-index:20}
+.hex-noeud .icone{font-size:1.4rem;margin-bottom:3px}
+.hex-noeud .label{font-size:0.62rem;font-weight:700;color:white;text-align:center;line-height:1.2;padding:0 4px}
+.hex-centre{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--rouge),var(--rouge-f));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;box-shadow:0 0 40px rgba(196,30,58,0.25);animation:pulse-c 3s ease-in-out infinite}
+.hex-centre .icone{font-size:1.5rem;margin-bottom:3px}
+.hex-centre .label{color:white;font-size:0.7rem;font-weight:700;text-align:center;line-height:1.3}
+@keyframes pulse-c{0%,100%{box-shadow:0 0 30px rgba(196,30,58,0.2)}50%{box-shadow:0 0 60px rgba(196,30,58,0.4)}}
+svg.hex-liens{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.lien-flux{stroke-dasharray:8 4;animation:flux-d 1.5s linear infinite}
+@keyframes flux-d{to{stroke-dashoffset:-24}}
+.info-bulle{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--noir);color:white;padding:12px 22px;border-radius:12px;font-size:0.8rem;text-align:center;max-width:420px;opacity:0;transition:all 0.3s;z-index:200;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,0.2)}
+.info-bulle.visible{opacity:1}
+.cta{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:var(--rouge);color:white;border-radius:10px;font-weight:600;font-size:0.9rem;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer;position:relative;z-index:10}
+.cta:hover{background:var(--rouge-f);transform:translateY(-1px)}
+.hero-sous{color:var(--gris);font-size:0.75rem;margin-top:8px;position:relative;z-index:10}
+.section-entete{text-align:center;margin-bottom:48px}
+.section-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.section-entete h2{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:var(--noir);margin-bottom:8px}
+.section-entete p{color:var(--gris);font-size:0.95rem;max-width:700px;margin:0 auto;line-height:1.6}
+.grille{display:grid;gap:20px;margin-bottom:32px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.carte{background:var(--fond);border-radius:14px;padding:28px;position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
+.carte:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+.carte::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.c-rouge::before{background:var(--rouge)}.c-bleu::before{background:var(--bleu)}.c-vert::before{background:var(--vert)}.c-orange::before{background:var(--orange)}.c-violet::before{background:var(--violet)}.c-gris::before{background:var(--gris-f)}.c-cyan::before{background:var(--cyan)}
+.carte-icone{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:14px}
+.carte h3{font-size:1rem;font-weight:700;margin-bottom:8px;color:var(--noir)}
+.carte p{font-size:0.85rem;color:var(--gris);line-height:1.6}
+.lien-demo{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:6px 14px;border-radius:6px;background:rgba(196,30,58,0.08);color:var(--rouge);font-size:0.78rem;font-weight:600;text-decoration:none;transition:all 0.15s}
+.lien-demo:hover{background:var(--rouge);color:white}
+.encart{background:var(--fond);border-left:4px solid var(--rouge);border-radius:0 10px 10px 0;padding:20px 24px;margin-top:20px}
+.encart h4{font-size:0.85rem;font-weight:700;color:var(--rouge);margin-bottom:6px}
+.encart p{font-size:0.82rem;color:var(--gris);line-height:1.6}
+.kirk{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kirk-item{text-align:center;background:var(--fond);border-radius:12px;padding:24px 16px;position:relative}
+.kirk-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin:0 auto 10px}
+.kirk-item h4{font-size:0.9rem;font-weight:700;margin-bottom:6px}
+.kirk-item p{font-size:0.78rem;color:var(--gris);line-height:1.5}
+.kirk-fleche{position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--rouge);font-size:1.1rem;z-index:2}
+.recap-zone{background:var(--fond);border-radius:20px;padding:48px 32px;margin:0 auto;max-width:1100px}
+.recap-zone .section-entete{margin-bottom:32px}
+.recap-grille{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}
+.recap-carte{background:var(--blanc);border-radius:12px;padding:18px;text-decoration:none;color:var(--noir);transition:all 0.2s;position:relative;overflow:hidden;display:block;border:1px solid var(--gris-c)}
+.recap-carte::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.recap-carte:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,0.08);border-color:transparent}
+.recap-carte .icone{font-size:1.3rem;margin-bottom:8px}
+.recap-carte h4{font-size:0.82rem;font-weight:700;margin-bottom:3px}
+.recap-carte p{font-size:0.7rem;color:var(--gris);line-height:1.4}
+.recap-carte .type{display:inline-block;margin-top:8px;padding:2px 8px;border-radius:10px;font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.type-html{background:rgba(196,30,58,0.08);color:var(--rouge)}
+.type-excel{background:rgba(22,101,52,0.08);color:var(--vert)}
+.recap-section-titre{font-size:0.8rem;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.recap-section-titre .pastille{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pied{background:var(--noir);color:white;text-align:center;padding:40px 24px}
+.pied h2{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:8px}
+.pied p{color:var(--gris);font-size:0.9rem}
+@media(max-width:768px){
+.g2,.g3,.recap-grille{grid-template-columns:1fr}
+.kirk{grid-template-columns:1fr 1fr}
+.kirk-fleche{display:none}
+.nav-fixe{padding:0 12px}
+section{padding:72px 16px 40px}
+.hex-noeud{width:80px;height:80px}.hex-noeud .icone{font-size:1.1rem}.hex-noeud .label{font-size:0.55rem}
+.hex-centre{width:95px;height:95px}.hex-centre .icone{font-size:1.2rem}.hex-centre .label{font-size:0.6rem}
+.recap-zone{padding:32px 16px;border-radius:12px}
+}
+@media(min-width:769px) and (max-width:1024px){.recap-grille{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.kirk{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="nav-fixe">
+<div class="logo">Portfolio André</div>
+<div class="nav-liens">
+<a href="#accueil" class="nav-lien actif">Interdépendance</a>
+<a href="#materiel" class="nav-lien">Matériel</a>
+<a href="#qualite" class="nav-lien">Qualité</a>
+<a href="#formation" class="nav-lien">Formation</a>
+<a href="#tiers" class="nav-lien">Tiers</a>
+<a href="#stats" class="nav-lien">Statistiques</a>
+<a href="#archivage" class="nav-lien">Archivage</a>
+<a href="#recap" class="nav-lien">Récapitulatif</a>
+</div>
+</nav>
+
+<section class="hero" id="accueil">
+<canvas id="particules"></canvas>
+<div class="hero-contenu">
+<div class="hero-badge">Postulation – Sergent, Compagnie Ambulances – SIS Genève</div>
+<h1>Interdépendance des <span>Dicastères</span></h1>
+<p>Un écosystème d'outils numériques interconnectés où chaque département nourrit les autres dans une boucle d'amélioration continue.</p>
+</div>
+<div class="hex-zone" id="hexZone">
+<svg class="hex-liens" id="svgLiens"></svg>
+<div class="hex-centre">
+<div class="icone">🔄</div>
+<div class="label">Amélioration<br>continue</div>
+</div>
+</div>
+<a href="#materiel" class="cta">Explorer les dicastères ↓</a>
+<div class="hero-sous">Survolez les nœuds pour découvrir les connexions · Cliquez pour naviguer</div>
+<div class="info-bulle" id="infoBulle"></div>
+</section>
+
+<section id="materiel">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(196,30,58,0.08);color:var(--rouge)">🔧 MATÉRIEL</div>
+<h2>Évaluation, Veille technologique & Contrôle</h2>
+<p>Trois outils pour objectiver les décisions d'acquisition et assurer le suivi du parc matériel.</p>
+</div>
+<div class="grille g2">
+<div class="carte c-rouge">
+<div class="carte-icone" style="background:rgba(196,30,58,0.1)">📋</div>
+<h3>Grille d'évaluation multicritères</h3>
+<p>Scoring pondéré sur 6 axes : ergonomie, performance technique, compatibilité, robustesse, coûts et conformité. Recommandation automatique par seuils. Export PDF intégré.</p>
+<a href="01_grille_evaluation_materiel.html" class="lien-demo">Voir l'outil →</a>
+</div>
+<div class="carte c-bleu">
+<div class="carte-icone" style="background:rgba(30,64,175,0.1)">🔍</div>
+<h3>Fiche comparative monitoring</h3>
+<p>Comparaison côte à côte de 4 appareils (ZOLL X Series, Corpuls C3, LIFEPAK 15, ZOLL X Advanced) sur l'ensemble des critères techniques, logistiques et économiques.</p>
+<a href="10_fiche_comparative_monitoring.html" class="lien-demo">Voir l'outil →</a>
+</div>
+<div class="carte c-violet">
+<div class="carte-icone" style="background:rgba(109,40,217,0.1)">⏰</div>
+<h3>Contrôle des péremptions</h3>
+<p>Gestion automatisée des dates de péremption par véhicule. Alertes colorées selon l'urgence. Historique des contrôles et traçabilité complète.</p>
+<a href="11_controle_peremptions.html" class="lien-demo">Voir l'outil →</a>
+</div>
+<div class="encart">
+<h4>💡 Impact</h4>
+<p>Décisions d'achat tracées et justifiables. Réduction du risque de péremption par alertes anticipées. Transition du processus papier au numérique.</p>
+</div>
+</div>
+</section>
+
+<section id="qualite">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(30,64,175,0.08);color:var(--bleu)">⚙️ QUALITÉ</div>
+<h2>Indicateurs, Dashboards & Schéma transversal</h2>
+<p>Mesurer, visualiser et structurer la démarche qualité de la compagnie.</p>
+</div>
+<div class="grille g3">
+<div class="carte c-bleu">
+<div class="carte-icone" style="background:rgba(30,64,175,0.1)">📊</div>
+<h3>Dashboard indicateurs qualité</h3>
+<p>Monitoring des indicateurs clés : AVC, douleur, réanimation, trauma. Filtres par période et type. Graphiques interactifs et alertes de seuils.</p>
+<a href="02_05_dashboard_indicateurs_qualite.html" class="lien-demo">Voir l'outil →</a>
+</div>
+<div class="carte c-vert">
+<div class="carte-icone" style="background:rgba(22,101,52,0.1)">📑</div>
+<h3>Dashboard qualité (Excel)</h3>
+<p>Version Excel pour exploitation interne. Tableaux croisés, tendances mensuelles, données exploitables directement par les équipes.</p>
+<a href="06_dashboard_qualite.xlsx" class="lien-demo" download>Télécharger ↓</a>
+</div>
+<div class="carte c-rouge">
+<div class="carte-icone" style="background:rgba(196,30,58,0.1)">🩺</div>
+<h3>Schéma qualité transversale</h3>
+<p>Cycle complet Avant / Pendant / Après chaque intervention. Boucle de rétro-action : les résultats alimentent la formation et le matériel.</p>
+<a href="03_schema_qualite_transversale.html" class="lien-demo">Voir l'outil →</a>
+</div>
+</div>
+</section>
+
+<section id="formation">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(22,101,52,0.08);color:var(--vert)">📚 FORMATION INTERNE</div>
+<h2>MedSim & Boucle Qualité ↔ Formation</h2>
+<p>Lier les données terrain à la formation continue des ambulanciers.</p>
+</div>
+<div class="grille g2">
+<div class="carte c-vert">
+<div class="carte-icone" style="background:rgba(22,101,52,0.1)">🎮</div>
+<h3>MedSim – Simulation préhospitalière</h3>
+<p>Jeu interactif de simulation de cas cliniques. Scénarios : arrêt cardiaque, AVC, trauma thoracique, état de choc, intoxication, brûlure. Prise de décision en temps réel avec monitoring ECG. Score de performance et débriefing automatique.</p>
+<a href="07_jeu_medsim.html" class="lien-demo">Voir l'outil →</a>
+</div>
+<div class="carte c-orange">
+<div class="carte-icone" style="background:rgba(194,65,12,0.1)">🔄</div>
+<h3>Boucle Qualité ↔ Formation</h3>
+<p>Processus en 5 étapes : collecte des données, analyse et extraction des indicateurs, identification des besoins, formation ciblée sur les lacunes documentées, réévaluation et mesure d'impact.</p>
+<a href="boucle_qualite_formation_synthese.html" class="lien-demo">Voir l'outil →</a>
+</div>
+</div>
+<div class="encart" style="border-color:var(--vert)">
+<h4 style="color:var(--vert)">Principe directeur</h4>
+<p>Les thèmes de formation reposent sur des données mesurables. Les ambulanciers voient le lien direct entre ce qu'ils apprennent et leur pratique quotidienne.</p>
+</div>
+</section>
+
+<section id="tiers">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(194,65,12,0.08);color:var(--orange)">🤝 FORMATION TIERS</div>
+<h2>Évaluation d'impact – Modèle de Kirkpatrick</h2>
+<p>Mesurer l'efficacité réelle des formations dispensées aux partenaires externes.</p>
+</div>
+<div class="kirk">
+<div class="kirk-item"><div class="kirk-num" style="background:var(--vert)">1</div><h4>Réaction</h4><p>Satisfaction des participants. Questionnaire post-formation immédiat.</p><span class="kirk-fleche">→</span></div>
+<div class="kirk-item"><div class="kirk-num" style="background:var(--bleu)">2</div><h4>Apprentissage</h4><p>Connaissances et gestes acquis. Pré-test / Post-test objectif.</p><span class="kirk-fleche">→</span></div>
+<div class="kirk-item"><div class="kirk-num" style="background:var(--orange)">3</div><h4>Comportement</h4><p>Transfert sur le terrain. Suivi à 3-6 mois post-formation.</p><span class="kirk-fleche">→</span></div>
+<div class="kirk-item"><div class="kirk-num" style="background:var(--violet)">4</div><h4>Résultats</h4><p>Impact organisationnel. Taux RACS, délais de prise en charge.</p></div>
+</div>
+<a href="09_evaluation_impact_formation_tiers.html" class="cta" style="display:inline-flex">Voir l'outil →</a>
+</section>
+
+<section id="stats">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(109,40,217,0.08);color:var(--violet)">📈 STATISTIQUES & ENCADREMENT ÉTUDIANT</div>
+<h2>Dashboard d'activité, Données & Tutorat</h2>
+<p>Transformer les données d'intervention en leviers décisionnels et structurer l'accompagnement des stagiaires.</p>
+</div>
+<div class="grille g3">
+<div class="carte c-cyan">
+<div class="carte-icone" style="background:rgba(8,145,178,0.1)">📊</div>
+<h3>Dashboard statistiques d'activité</h3>
+<p>Tableau de bord complet avec KPI, graphiques dynamiques, cartographie des interventions (Leaflet), analyses par secteur, pathologie, NACA et équipe. Import des données depuis fichier Excel.</p>
+<a href="12_dashboard_activite.html" class="lien-demo">Voir l'outil →</a>
+</div>
+<div class="carte c-violet">
+<div class="carte-icone" style="background:rgba(109,40,217,0.1)">📁</div>
+<h3>Extraction des données</h3>
+<p>Fichier source d'interventions : horodatage complet (alerte → hôpital), type de mission, pathologie, NACA, géolocalisation, secteur, destination. Chargé automatiquement par le dashboard.</p>
+<a href="Extraction_Attrib.xlsx" class="lien-demo" download>Télécharger ↓</a>
+</div>
+<div class="carte c-orange">
+<div class="carte-icone" style="background:rgba(194,65,12,0.1)">🎓</div>
+<h3>Encadrement étudiant</h3>
+<p>Structuration du parcours de stage : grille de compétences progressive, suivi individualisé des acquis, debriefing systématique post-intervention, lien avec les indicateurs qualité.</p>
+</div>
+</div>
+<div class="encart" style="border-color:var(--violet)">
+<h4 style="color:var(--violet)">Synergie inter-dicastères</h4>
+<p>Les statistiques alimentent la boucle qualité-formation. Le dashboard identifie les tendances qui orientent les formations. L'encadrement étudiant bénéficie des outils de simulation (MedSim) et des grilles d'évaluation.</p>
+</div>
+</section>
+
+<section id="archivage">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(55,65,81,0.08);color:var(--gris-f)">🗂️ ARCHIVAGE & DOCUMENTATION</div>
+<h2>Gestion documentaire & Traçabilité</h2>
+<p>Garantir l'accessibilité, la traçabilité et la mise à jour de l'ensemble de la documentation opérationnelle.</p>
+</div>
+<div class="grille g2">
+<div class="carte c-gris"><div class="carte-icone" style="background:rgba(55,65,81,0.1)">📁</div><h3>Protocoles & procédures</h3><p>Versions contrôlées avec historique des modifications. Accès rapide depuis le terrain.</p></div>
+<div class="carte c-bleu"><div class="carte-icone" style="background:rgba(30,64,175,0.1)">🗄️</div><h3>Base de connaissances</h3><p>Centralisation des fiches techniques matériel, médicaments et algorithmes décisionnels.</p></div>
+<div class="carte c-rouge"><div class="carte-icone" style="background:rgba(196,30,58,0.1)">📅</div><h3>Cycle de révision</h3><p>Planification des mises à jour périodiques. Alertes automatiques avant expiration des documents.</p></div>
+<div class="carte c-orange"><div class="carte-icone" style="background:rgba(194,65,12,0.1)">💾</div><h3>Migration numérique</h3><p>Transition des processus papier vers SharePoint. Classement structuré et recherche facilitée.</p></div>
+</div>
+</section>
+
+<section id="recap" style="min-height:auto;padding-bottom:60px">
+<div class="recap-zone">
+<div class="section-entete">
+<div class="section-badge" style="background:rgba(196,30,58,0.08);color:var(--rouge)">📋 RÉCAPITULATIF</div>
+<h2>Accès direct aux outils</h2>
+<p>Tous les outils interactifs du portfolio en un coup d'œil.</p>
+</div>
+
+<div class="recap-section-titre"><span class="pastille" style="background:var(--rouge)"></span> Matériel</div>
+<div class="recap-grille">
+<a href="01_grille_evaluation_materiel.html" class="recap-carte c-rouge"><div class="icone">📋</div><h4>Grille d'évaluation</h4><p>Scoring multicritères pondéré</p><span class="type type-html">HTML interactif</span></a>
+<a href="10_fiche_comparative_monitoring.html" class="recap-carte c-bleu"><div class="icone">🔍</div><h4>Fiche comparative monitoring</h4><p>4 appareils côte à côte</p><span class="type type-html">HTML interactif</span></a>
+<a href="11_controle_peremptions.html" class="recap-carte c-violet"><div class="icone">⏰</div><h4>Contrôle péremptions</h4><p>Alertes par véhicule</p><span class="type type-html">HTML interactif</span></a>
+</div>
+
+<div class="recap-section-titre"><span class="pastille" style="background:var(--bleu)"></span> Qualité</div>
+<div class="recap-grille">
+<a href="02_05_dashboard_indicateurs_qualite.html" class="recap-carte c-bleu"><div class="icone">📊</div><h4>Dashboard indicateurs qualité</h4><p>AVC, douleur, réanimation, trauma</p><span class="type type-html">HTML interactif</span></a>
+<a href="06_dashboard_qualite.xlsx" class="recap-carte c-vert" download><div class="icone">📑</div><h4>Dashboard qualité (Excel)</h4><p>Tableaux croisés & tendances</p><span class="type type-excel">Excel – Télécharger</span></a>
+<a href="03_schema_qualite_transversale.html" class="recap-carte c-rouge"><div class="icone">🩺</div><h4>Schéma qualité transversale</h4><p>Cycle Avant / Pendant / Après</p><span class="type type-html">HTML interactif</span></a>
+</div>
+
+<div class="recap-section-titre"><span class="pastille" style="background:var(--vert)"></span> Formation interne</div>
+<div class="recap-grille">
+<a href="07_jeu_medsim.html" class="recap-carte c-vert"><div class="icone">🎮</div><h4>MedSim – Simulation</h4><p>Cas cliniques interactifs</p><span class="type type-html">HTML interactif</span></a>
+<a href="boucle_qualite_formation_synthese.html" class="recap-carte c-orange"><div class="icone">🔄</div><h4>Boucle Qualité ↔ Formation</h4><p>5 étapes data → impact</p><span class="type type-html">HTML interactif</span></a>
+</div>
+
+<div class="recap-section-titre"><span class="pastille" style="background:var(--orange)"></span> Formation tiers</div>
+<div class="recap-grille">
+<a href="09_evaluation_impact_formation_tiers.html" class="recap-carte c-orange"><div class="icone">🤝</div><h4>Évaluation d'impact Kirkpatrick</h4><p>4 niveaux de mesure</p><span class="type type-html">HTML interactif</span></a>
+</div>
+
+<div class="recap-section-titre"><span class="pastille" style="background:var(--violet)"></span> Statistiques & Encadrement</div>
+<div class="recap-grille">
+<a href="12_dashboard_activite.html" class="recap-carte c-cyan"><div class="icone">📊</div><h4>Dashboard statistiques d'activité</h4><p>KPI, cartographie, analyses</p><span class="type type-html">HTML interactif</span></a>
+<a href="Extraction_Attrib.xlsx" class="recap-carte c-violet" download><div class="icone">📁</div><h4>Extraction données interventions</h4><p>Fichier source Excel</p><span class="type type-excel">Excel – Télécharger</span></a>
+</div>
+</div>
+</section>
+
+<footer class="pied">
+<h2>André – Portfolio Projets</h2>
+<p>Compagnie Ambulances – SIS Genève</p>
+</footer>
+
+<script>
+var dicasteres=[
+{id:'materiel',label:'Matériel',icone:'🔧',couleur:'#C41E3A',angle:270,info:'Évalue et acquiert le matériel → alimenté par les retours Qualité et Formation',lien:'#materiel'},
+{id:'qualite',label:'Qualité',icone:'⚙️',couleur:'#1e40af',angle:330,info:'Mesure la performance → oriente la Formation et valide le Matériel',lien:'#qualite'},
+{id:'formation',label:'Formation\ninterne',icone:'📚',couleur:'#166534',angle:30,info:'Forme sur les lacunes identifiées par la Qualité → améliore les pratiques terrain',lien:'#formation'},
+{id:'tiers',label:'Formation\nTiers',icone:'🤝',couleur:'#c2410c',angle:90,info:'Évalue l\'impact externe → utilise les mêmes indicateurs Qualité',lien:'#tiers'},
+{id:'stats',label:'Statistiques',icone:'📊',couleur:'#6d28d9',angle:150,info:'Exploite les données d\'intervention → justifie les décisions et encadre les stagiaires',lien:'#stats'},
+{id:'archivage',label:'Archivage',icone:'🗂️',couleur:'#374151',angle:210,info:'Documente et trace tout le processus → garantit la mémoire du système',lien:'#archivage'}
+];
+var connexions=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,2],[1,4],[2,5],[3,0],[1,3],[4,0]];
+var hexZone=document.getElementById('hexZone'),svgL=document.getElementById('svgLiens'),infoBulle=document.getElementById('infoBulle');
+function construireHex(){
+hexZone.querySelectorAll('.hex-noeud').forEach(function(n){n.remove()});
+while(svgL.firstChild)svgL.removeChild(svgL.firstChild);
+var t=hexZone.offsetWidth,c=t/2,r=t*0.36,pos=[];
+dicasteres.forEach(function(d,i){
+var rad=d.angle*Math.PI/180,x=c+r*Math.cos(rad),y=c+r*Math.sin(rad);
+pos.push({x:x,y:y});
+var n=document.createElement('div');n.className='hex-noeud';n.style.left=x+'px';n.style.top=y+'px';
+n.style.background='linear-gradient(135deg,'+d.couleur+','+d.couleur+'cc)';
+n.style.boxShadow='0 4px 20px '+d.couleur+'35';
+n.innerHTML='<div class="icone">'+d.icone+'</div><div class="label">'+d.label.replace('\n','<br>')+'</div>';
+n.addEventListener('mouseenter',function(){infoBulle.textContent=d.info;infoBulle.classList.add('visible');
+svgL.querySelectorAll('.lien-flux').forEach(function(l){var s=parseInt(l.dataset.src),e=parseInt(l.dataset.dst);
+if(s===i||e===i){l.style.stroke=d.couleur;l.style.strokeWidth='3';l.style.opacity='0.8'}else{l.style.opacity='0.04'}});});
+n.addEventListener('mouseleave',function(){infoBulle.classList.remove('visible');
+svgL.querySelectorAll('.lien-flux').forEach(function(l){l.style.stroke='#C41E3A';l.style.strokeWidth='1.5';l.style.opacity='0.15'});});
+n.addEventListener('click',function(){window.location.hash=d.lien});
+hexZone.appendChild(n);
+});
+connexions.forEach(function(c2){var l=document.createElementNS('http://www.w3.org/2000/svg','line');
+l.setAttribute('x1',pos[c2[0]].x);l.setAttribute('y1',pos[c2[0]].y);l.setAttribute('x2',pos[c2[1]].x);l.setAttribute('y2',pos[c2[1]].y);
+l.setAttribute('stroke','#C41E3A');l.setAttribute('stroke-width','1.5');l.setAttribute('opacity','0.15');
+l.classList.add('lien-flux');l.dataset.src=c2[0];l.dataset.dst=c2[1];svgL.appendChild(l);});
+}
+construireHex();
+var canvas=document.getElementById('particules'),ctx=canvas.getContext('2d'),parts=[];
+function initCanvas(){canvas.width=canvas.offsetWidth*window.devicePixelRatio;canvas.height=canvas.offsetHeight*window.devicePixelRatio;ctx.setTransform(1,0,0,1,0,0);ctx.scale(window.devicePixelRatio,window.devicePixelRatio)}
+function nouvP(){return{x:Math.random()*canvas.offsetWidth,y:Math.random()*canvas.offsetHeight,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*2+0.5,o:Math.random()*0.12+0.02}}
+for(var i=0;i<55;i++)parts.push(nouvP());
+function animer(){ctx.clearRect(0,0,canvas.offsetWidth,canvas.offsetHeight);
+parts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.offsetWidth)p.vx*=-1;if(p.y<0||p.y>canvas.offsetHeight)p.vy*=-1;
+ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,30,58,'+p.o+')';ctx.fill()});
+for(var a=0;a<parts.length;a++){for(var b=a+1;b<parts.length;b++){var dx=parts[a].x-parts[b].x,dy=parts[a].y-parts[b].y,dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<110){ctx.beginPath();ctx.moveTo(parts[a].x,parts[a].y);ctx.lineTo(parts[b].x,parts[b].y);ctx.strokeStyle='rgba(196,30,58,'+(0.035*(1-dist/110))+')';ctx.lineWidth=0.5;ctx.stroke()}}}
+requestAnimationFrame(animer)}
+initCanvas();window.addEventListener('resize',function(){initCanvas();construireHex()});animer();
+var liens=document.querySelectorAll('.nav-lien'),sections=document.querySelectorAll('section');
+window.addEventListener('scroll',function(){var p=window.scrollY+100;sections.forEach(function(s){
+if(s.offsetTop<=p&&s.offsetTop+s.offsetHeight>p){liens.forEach(function(l){l.classList.remove('actif')});
+var a=document.querySelector('.nav-lien[href="#'+s.id+'"]');if(a)a.classList.add('actif')}})});
+</script>
+</body>
+</html>
